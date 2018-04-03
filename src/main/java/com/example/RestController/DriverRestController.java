@@ -2,7 +2,6 @@ package com.example.RestController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,11 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Repostitory.DriverRepository;
 import com.example.Repostitory.LocationRepository;
-import com.example.controller.TruckController;
+import com.example.Repostitory.PenaltiesRepostitory;
+import com.example.Repostitory.TripRepository;
 import com.example.models.Driver;
 import com.example.models.Location;
-import com.example.models.Truck;
-
+import com.example.models.Penalties;
+import com.example.models.Trip;
 @RestController
 @CrossOrigin(origins = "*")
 public class DriverRestController {
@@ -27,6 +27,12 @@ public class DriverRestController {
 	
 	@Autowired
 	private LocationRepository locationRepository;
+	
+	@Autowired
+	private PenaltiesRepostitory penaltiesRepostitory;
+	
+	@Autowired
+	private TripRepository tripRepository;
 	
 	
 	public double getDistanceBetweenTwoTruck(Driver first, Driver second) {
@@ -51,7 +57,7 @@ public class DriverRestController {
 				+ Math.cos(rad(p1.getLat())) * Math.cos(rad(p2.getLat())) * Math.sin(dLong / 2) * Math.sin(dLong / 2);
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 		double d = R * c;
-		return d; // return distance in meter
+		return d; // return distance in meterd
 	}
 
 	/* get nearest Trucks to my truck in specific range */
@@ -111,6 +117,76 @@ public class DriverRestController {
 			return temp;
 		}
 	}
+	
+	
+	/*calculate penalty during trip*/
+	//Amina
+	@RequestMapping(value="/calculateSpeedPenalty/{locationId}/{civilSpeed}/{tripId}",method=RequestMethod.GET)
+	private void calculateSpeedPenalty (@PathVariable long locationId,@PathVariable double civilSpeed,@PathVariable long tripId)
+	{
+		Trip t=tripRepository.findOne(tripId);
+		Location location = locationRepository.findOne(locationId);
+		Penalties p=new Penalties();
+		
+			p=new Penalties();
+			double diffrence=Math.abs(location.getSpeed()-civilSpeed);
+			double penalty=0.0;
+			for (int i=10;i<=diffrence;i+=10)
+			{
+				penalty+=0.1;
+			}
+			p.setLocation(location); p.setTrip(t); p.setType("speed"); p.setValue(penalty);
+			penaltiesRepostitory.save(p);
+	}
+	//Amina
+	@RequestMapping(value="/calculateBrakePenalty/{locationId}/{previousSpeed}/{currentSpeed}/{tripId}",method=RequestMethod.GET)
+	public void calculateBrakePenalty(@PathVariable long locationId,@PathVariable double previousSpeed,@PathVariable double currentSpeed,@PathVariable long tripId)
+	{
+		Trip trip = tripRepository.findOne(tripId);
+		Location location = locationRepository.findOne(locationId);
+		double diffrence = Math.abs(previousSpeed-currentSpeed);
+		
+		if(diffrence>=50)
+		{
+			Penalties p= new Penalties();
+			p.setLocation(location); p.setTrip(trip); p.setType("brake"); p.setValue(0.2);
+			penaltiesRepostitory.save(p);
+		}
+		
+	}
+	
+	
+	
+	
+	//get penalty, update driver rate and set tripRate 
+	/*by amina*/
+	@RequestMapping(value="/rate/{tripId}",method=RequestMethod.GET)
+	public double rate(@PathVariable long tripId)
+	{	
+		Trip trip=tripRepository.findOne(tripId);
+		Driver driver=trip.getDriver();
+		double tripRate=5.0;
+		ArrayList<Penalties> ps = penaltiesRepostitory.findByTrip(trip);
+		for (int i=0;i<ps.size();i++)
+		{
+			tripRate-=ps.get(i).getValue();
+		}
+		trip.setRate(tripRate);
+		tripRepository.save(trip);
+		ArrayList<Trip> driverTrips = tripRepository.findByDriver(driver);
+		double sum=0.0;
+		for (int i=0;i<driverTrips.size();i++)
+		{
+			sum+=driverTrips.get(i).getRate();
+		}
+		
+		double driverTotalRate=(double)sum/driverTrips.size();
+		driver.setRate(driverTotalRate);
+		driverRepository.save(driver);
+		
+		return driverTotalRate;
+	}
+	
 	
 	@RequestMapping(value="/getAllDrivers",method=RequestMethod.GET)
 	public ArrayList<Driver> getAllDrivers()

@@ -17,10 +17,10 @@ public class Truck {
 	private String truck_id;
 
 	@Column(name = "current_speed")
-	private int currentSpeed;
+	private double currentSpeed;
 	
 	@Column(name = "Previous_speed")
-	private int previousSpeed;
+	private double previousSpeed;
 
 	@Column(name = "active")
 	private boolean active;
@@ -51,20 +51,20 @@ public class Truck {
 	}
 
 
-	public int getCurrentSpeed() {
+	public double getCurrentSpeed() {
 		return currentSpeed;
 	}
 
-	public void setCurrentSpeed(int currentSpeed) {
-		this.currentSpeed = currentSpeed;
+	public void setCurrentSpeed(Double speed) {
+		this.currentSpeed = speed;
 	}
 
-	public int getPreviousSpeed() {
+	public double getPreviousSpeed() {
 		return previousSpeed;
 	}
 
-	public void setPreviousSpeed(int previousSpeed) {
-		this.previousSpeed = previousSpeed;
+	public void setPreviousSpeed(double d) {
+		this.previousSpeed = d;
 	}
 
 	public boolean getActive() {

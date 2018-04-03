@@ -60,8 +60,16 @@ public class GPS {
 				{
 					res.put("Error","Location not save Database Error");
 				}
-				else
-					res.put("Success", "location are added");
+				else {
+					truck.setPreviousSpeed(truck.getCurrentSpeed());
+					truck.setCurrentSpeed(speed);
+					if(truckRepository.save(truck) != null)
+					{
+						res.put("Error","Location not save Database Error");
+					}
+					else
+						res.put("Success", "location are added");
+				}
 			}
 		}
 		return res;

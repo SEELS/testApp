@@ -39,6 +39,8 @@ public class Location {
 	@JoinColumn(name="driver_id")
 	private Driver driver;
 	
+	// time stamps
+	
 	public Location() {
 		super();
 	}

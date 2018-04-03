@@ -2,6 +2,8 @@ package com.example.RestController;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -45,9 +47,11 @@ public class TripRestController {
 	@Autowired
 	private DriverRepository driverRepository;
 	
-	@RequestMapping(value = "/saveTrip/{truck_id}/{date}/{dest_id}/{driver_id}/{parent_id}/{source_id}/{road_id}", method = RequestMethod.GET)
-	public boolean saveTrip(@PathVariable String truck_id,@PathVariable String date,@PathVariable long dest_id,@PathVariable long driver_id,@PathVariable long parent_id,@PathVariable long source_id,@PathVariable long road_id) 
+	@RequestMapping(value = "/saveTrip/{truck_id}/{date}/{dlat}/{dlon}/{slat}/{slon}/{driver_id}/{parent_id}/{road_id}", method = RequestMethod.GET)
+	public Map<String, String> saveTrip(@PathVariable String truck_id,@PathVariable String date,@PathVariable double dlat,@PathVariable double dlon,@PathVariable double slat,@PathVariable double slon,@PathVariable long driver_id,@PathVariable long parent_id,@PathVariable long road_id) 
 	{
+		Map<String, String> res = new HashMap<>();
+
 		Truck truck=truckRepository.findOne(truck_id);
 		Road road=roadRepository.findOne(road_id);
 //		
@@ -59,23 +63,47 @@ public class TripRestController {
 //		{
 //			parent=tripRepository.findOne(parent_id);
 //		}
-		Driver driver=driverRepository.findOne(driver_id);
-		Location dest=locationRepository.findOne(dest_id);
-		Location source=locationRepository.findOne(source_id);
-		Trip trip=new Trip();
-		trip.setRate(5.0);
-		trip.setDate(date);
-		trip.setDriver(driver);
-		trip.setDestination(dest);
-		trip.setParent(parent_id);
-		trip.setSource(source);
-		trip.setTruck(truck);
-		trip.setRoad(road);
-		if(tripRepository.save(trip)!=null)
+		Location source = new Location();
+		source.setLat(slat);
+		source.setLon(slon);
+		source.setSpeed(0.0);
+		Location destination = new Location();
+		destination.setLat(dlat);
+		destination.setLon(dlon);
+		destination.setSpeed(0.0);
+
+		if(locationRepository.save(destination)!=null && locationRepository.save(source)!=null)
 		{
-			return true;
+			Driver driver=driverRepository.findOne(driver_id);
+			if(driver!=null)
+			{
+				Trip trip=new Trip();
+				trip.setRate(5.0);
+				trip.setDate(date);
+				trip.setDriver(driver);
+				trip.setDestination(destination);
+				trip.setSource(source);
+				trip.setParent(parent_id);
+				trip.setSource(source);
+				trip.setTruck(truck);
+				trip.setRoad(road);
+				if(tripRepository.save(trip)!=null)
+				{
+					res.put("Success", "location are added");
+				}
+				else
+					res.put("Error","Trip not save Database Error");
+			
+			}
+			else
+			{
+				res.put("Error", "Driver Not found");
+			}
 		}
-		return false;
+		else
+			res.put("Error","Location not save Database Error");
+		
+		return res;
 	}
 	
 	@RequestMapping(value = "/returnTrip/{driver_id}", method = RequestMethod.GET)

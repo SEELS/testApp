@@ -32,11 +32,15 @@ public class Driver {
 	@Column(name = "password")
 	private String password;
 	
+	@Column(name= "rate")
+	private double rate;
+	
+	
 	public Driver() {
 		super();
 	}
 	
-	public Driver(long driver_id, String name, String ssn, String token, boolean logged, String password) {
+	public Driver(long driver_id, String name, String ssn, String token, boolean logged, String password,double rate) {
 		super();
 		this.driver_id = driver_id;
 		this.name = name;
@@ -44,6 +48,16 @@ public class Driver {
 		this.token=token;
 		this.logged=logged;
 		this.password=password;
+		this.rate=rate;
+	}
+	
+	public void setRate(double rate)
+	{
+		this.rate=rate;
+	}
+	public double getRate()
+	{
+		return rate;
 	}
 	
 

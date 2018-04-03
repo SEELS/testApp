@@ -297,11 +297,6 @@ public class TruckRestController {
 		return (ArrayList<Truck>)truckRepository.findAll();
 	}
 	
-	@RequestMapping(value="/getNearTrucks",method=RequestMethod.GET)
-	public ArrayList<Truck> getNearTrucks()
-	{
-		 ArrayList<Truck> trucks=getAllActiveTrucks();
-		 return null;
-	}
+	
 
 }
