@@ -29,11 +29,13 @@ public class DriverRestController {
 	private LocationRepository locationRepository;
 	
 	
-	
-	public double getDistanceBetweenTwoTruck(Driver first,Driver second) {
+	public double getDistanceBetweenTwoTruck(Driver first, Driver second) {
 		Location truckOneLocation = locationRepository.findFirstByDriverOrderByIdDesc(first);
 		Location truckTwoLocation = locationRepository.findFirstByDriverOrderByIdDesc(second);
-		return getDistance(truckOneLocation, truckTwoLocation);
+		if (truckOneLocation!=null &&truckTwoLocation!=null)
+			return getDistance(truckOneLocation, truckTwoLocation);
+		else
+			return Double.MAX_VALUE;
 	}
 
 	private double rad(double x) {
@@ -51,31 +53,31 @@ public class DriverRestController {
 		double d = R * c;
 		return d; // return distance in meter
 	}
-	
-	/* get nearest Trucks to my truck in specific range*/
+
+	/* get nearest Trucks to my truck in specific range */
 	@RequestMapping(value = "/getNearLocation/{driverId}/{range}", method = RequestMethod.GET)
-	public ArrayList<Location> getNearTrucksToTruck(@PathVariable long driverId,@PathVariable double range)
-	{
+	public ArrayList<Location> getNearTrucksToTruck(@PathVariable long driverId, @PathVariable double range) {
+		
 		ArrayList<Driver> nearestDriver = new ArrayList<>();
 		ArrayList<Location> nearestDriverLocation = new ArrayList<>();
-		TruckController truckController = new TruckController();
 		ArrayList<Driver> allDriver = getAllDrivers();
-		Driver myDriver =driverRepository.findOne(driverId); 
-		allDriver.remove(myDriver);
-		for (Driver driver : allDriver) {
-			if (getDistanceBetweenTwoTruck(myDriver, driver)<=range) {
-				nearestDriver.add(driver);
+		Driver myDriver = driverRepository.findOne(driverId);
+		if (myDriver != null) {
+			allDriver.remove(myDriver);
+			for (Driver driver : allDriver) {
+				if (getDistanceBetweenTwoTruck(myDriver, driver) <= range) {
+					nearestDriver.add(driver);
+				}
 			}
-		}
-		
-		for (Driver driver : nearestDriver) {
-			Location driverLocation = locationRepository.findFirstByDriverOrderByIdDesc(driver);
-			nearestDriverLocation.add(driverLocation);
+
+			for (Driver driver : nearestDriver) {
+				Location driverLocation = locationRepository.findFirstByDriverOrderByIdDesc(driver);
+				nearestDriverLocation.add(driverLocation);
+			}
 		}
 		return nearestDriverLocation;
 	}
-	
-	
+
 	/* login for driver of the truck */
 	@RequestMapping(value = "/login/{id}/{password}", method = RequestMethod.GET)
 	public Map<String, Integer> login(@PathVariable long id, @PathVariable String password) {
@@ -90,7 +92,7 @@ public class DriverRestController {
 		} else {
 			if (driver.getPassword().equals(password)) {
 				if (driver.getLogged())
-					logged = false;
+					logged = true;
 				else {
 					driver.setLogged(true);
 					logged = true;
@@ -109,6 +111,7 @@ public class DriverRestController {
 			return temp;
 		}
 	}
+	
 	@RequestMapping(value="/getAllDrivers",method=RequestMethod.GET)
 	public ArrayList<Driver> getAllDrivers()
 	{
