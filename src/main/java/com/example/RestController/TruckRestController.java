@@ -76,18 +76,38 @@ public class TruckRestController {
 			else
 			{
 				truck.setDriver(driver);
-				truckRepository.save(truck);
-				res.put("Success", "Done !!");
+				if(truckRepository.save(truck)!=null)
+					res.put("Success", "Done !!");
+				else
+					res.put("Error", "Error Update in dataBase");
 			}
 		}
 		return res;
 	}
 	
 	
-	
-	
-	
-	
+	// sara & sameh Edit 3/4/2018 1:20 Dr :Shawky
+	/* it gets an object of a specific truck, helping to get truck data*/
+	@RequestMapping(value = "/changeTruckState/{state}/{Truck_id}", method = RequestMethod.GET)
+	public Map<String, String> changeTruckstate(@PathVariable String Truck_id,@PathVariable boolean state) {
+		Map<String,String> res = new HashMap<>();
+		Truck truck = truckRepository.findOne(Truck_id);
+		if(truck==null)
+		{
+			res.put("Error", "Truck Not found");
+		}
+		else
+		{
+			truck.setActive(state);
+			if(truckRepository.save(truck)==null)
+			{
+				res.put("Error", "Error in update in database !!");
+			}
+			else
+				res.put("Success", "Done !!");
+		}
+		return res;
+	}
 	
 	/* it gets an object of a specific truck, helping to get truck data*/
 	@RequestMapping(value = "/viewTruck/{id}", method = RequestMethod.GET)
