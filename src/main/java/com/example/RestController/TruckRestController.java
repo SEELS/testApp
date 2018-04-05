@@ -199,7 +199,18 @@ public class TruckRestController {
 		driver.setName(name);
 		driver.setSsn(ssn);
 		driver.setPassword(password);
+		driver.setDeleted(false);
 		driver.setLogged(false);
+		if (driverRepository.save(driver) != null)
+			return true;
+		return false;
+	}
+	
+	@RequestMapping(value = "/{name}/saveDriver", method = RequestMethod.GET)
+	public boolean saveDriver2(@PathVariable long name ) {
+		Driver driver =driverRepository.findOne(name);
+		
+		driver.setDeleted(false);
 		if (driverRepository.save(driver) != null)
 			return true;
 		return false;
