@@ -19,6 +19,7 @@ import com.example.models.Driver;
 import com.example.models.Location;
 import com.example.models.Penalties;
 import com.example.models.Trip;
+
 @RestController
 @CrossOrigin(origins = "*")
 public class DriverRestController {
@@ -33,11 +34,12 @@ public class DriverRestController {
 	
 	@Autowired
 	private TripRepository tripRepository;
-	
+
 	
 	public double getDistanceBetweenTwoTruck(Driver first, Driver second) {
 		Location truckOneLocation = locationRepository.findFirstByDriverOrderByIdDesc(first);
 		Location truckTwoLocation = locationRepository.findFirstByDriverOrderByIdDesc(second);
+		
 		if (truckOneLocation!=null &&truckTwoLocation!=null)
 			return getDistance(truckOneLocation, truckTwoLocation);
 		else
@@ -77,7 +79,17 @@ public class DriverRestController {
 			}
 
 			for (Driver driver : nearestDriver) {
-				Location driverLocation = locationRepository.findFirstByDriverOrderByIdDesc(driver);
+				ArrayList<Location> allLocations=(ArrayList<Location>)locationRepository.findAll();
+				ArrayList<Location> firstDriverLocations=new ArrayList<Location>();
+				for(int i=0;i<allLocations.size();i++)
+				{
+					if(allLocations.get(i).getDriver()==driver)
+					{
+						firstDriverLocations.add(allLocations.get(i));
+					}
+				}
+				Location driverLocation=firstDriverLocations.get(firstDriverLocations.size()-1);
+				//Location driverLocation = locationRepository.findFirstByDriverOrderByIdDesc(driver);
 				nearestDriverLocation.add(driverLocation);
 			}
 		}
@@ -98,7 +110,7 @@ public class DriverRestController {
 		} else {
 			if (driver.getPassword().equals(password)) {
 				if (driver.getLogged())
-					logged = true;
+					logged = false;
 				else {
 					driver.setLogged(true);
 					logged = true;
@@ -116,8 +128,7 @@ public class DriverRestController {
 			}
 			return temp;
 		}
-	}
-	
+	}	
 	
 	/*calculate penalty during trip*/
 	//Amina
@@ -195,6 +206,49 @@ public class DriverRestController {
 	}
 //get trucks speed by their id only then calculate the accident probability 
 	
+	@RequestMapping(value="/getDriver/{}",method=RequestMethod.GET)
+	public Driver getDriver(@PathVariable long driver_id)
+	{
+		if(driverRepository.findOne(driver_id)==null)
+		{
+			return null;
+		}
+		Driver driver =driverRepository.findOne(driver_id);
+		if(driver.getDeleted()==true)
+		{
+			return null;
+		}
+		return driver;
+	}
 	
+	@RequestMapping(value="/deleteAllDrivers",method=RequestMethod.GET)
+	public boolean deleteAllDrivers()
+	{
+		ArrayList<Driver> drivers= (ArrayList<Driver>)driverRepository.findAll();
+		for(int i=0;i<drivers.size();i++)
+		{
+			drivers.get(i).setDeleted(true);
+			if(driverRepository.save(drivers.get(i))==null)
+				return false;
+		}
+		return true;
+	}
+	
+	@RequestMapping(value="/deleteDriver/{driver_id}",method=RequestMethod.GET)
+	public boolean deleteTruck(@PathVariable long driver_id)
+	{
+		if(driverRepository.findOne(driver_id)==null)
+		{
+			return false;
+		}
+		else
+		{
+			Driver driver=driverRepository.findOne(driver_id);
+			driver.setDeleted(true);
+			if(driverRepository.save(driver)!=null)
+				return true;
+		}
+		return false;
+	}
 
 }

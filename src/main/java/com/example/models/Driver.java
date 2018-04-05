@@ -35,6 +35,8 @@ public class Driver {
 	@Column(name= "rate")
 	private double rate;
 	
+	@Column(name = "deleted")
+	private boolean deleted;
 	
 	public Driver() {
 		super();
@@ -112,5 +114,13 @@ public class Driver {
 		return password;
 	}
 	
+	public boolean getDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean del) {
+		this.deleted = del;
+	}
+
 	
 }

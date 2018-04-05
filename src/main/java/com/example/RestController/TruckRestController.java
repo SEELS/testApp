@@ -132,13 +132,14 @@ public class TruckRestController {
 		return truckLocations.get(truckLocations.size()-1);
 	}
 	
+	
 	/* it gets the current location of truck to draw a  marker on the map */
 	@RequestMapping(value = "/viewCurrentLocation/{driver_id}", method = RequestMethod.GET)
 	public Location getCurrentLocation(@PathVariable long driver_id) {
 		ArrayList<Location> locations=(ArrayList<Location>) locationRepository.findAll();
 		Driver driver = driverRepository.findOne(driver_id);
 		ArrayList<Location> truckLocations=new ArrayList<Location>();
-		for(int i=0;i<locations.size();i++)
+		for(int i=0;i<locations.size();i++)		
 		{
 			if(locations.get(i).getDriver()==driver)
 			{
@@ -168,6 +169,7 @@ public class TruckRestController {
 		}
 		return locations;
 	}
+
 	
 	@RequestMapping(value = "/viewDriverData/{id}", method = RequestMethod.GET)
 	public Driver getDriver(@PathVariable String id) 
@@ -183,10 +185,13 @@ public class TruckRestController {
 		truck.setDriver(driver);
 		truck.setActive(active);
 		truck.setId(id);
+		truck.setDeleted(false);
 		if (truckRepository.save(truck) != null)
 			return true;
 		return false;
 	}
+	
+
 	/* if the manager wants to save a driver from the web site */
 	@RequestMapping(value = "/{name}/{ssn}/{password}/saveDriver", method = RequestMethod.GET)
 	public boolean saveDriver(@PathVariable String name , @PathVariable String ssn, @PathVariable String password) {
@@ -204,10 +209,8 @@ public class TruckRestController {
 	@RequestMapping(value = "/{truck1_id}/{truck2_id}/changeInSpeed", method = RequestMethod.GET)
 	public boolean changeInSpeed(@PathVariable String truck1_id,@PathVariable String truck2_id)
 	{
-		DriverRestController dctrl = new DriverRestController();
-		// Truck 1 at the front and truck 2 at the back
-		Truck truck1=truckRepository.findOne(truck1_id);
 		ArrayList<Trip> trips=(ArrayList<Trip>) tripRepository.findAll();
+		Truck truck1=truckRepository.findOne(truck1_id);
 		Driver driver1 =new Driver();
 		for(int i=0;i<trips.size();i++)
 		{
@@ -216,12 +219,7 @@ public class TruckRestController {
 				driver1=trips.get(i).getDriver();
 			}
 		}
-		long driver_id1=driver1.getDriver_id();
-		Location truckLocation1=getCurrentLocation(driver_id1);
-		double truck1Speed=truckLocation1.getSpeed();
-		
-		
-		Truck truck2=truckRepository.findOne(truck1_id);
+		Truck truck2=truckRepository.findOne(truck2_id);
 		Driver driver2 =new Driver();
 		for(int i=0;i<trips.size();i++)
 		{
@@ -230,29 +228,48 @@ public class TruckRestController {
 				driver2=trips.get(i).getDriver();
 			}
 		}
-		long driver_id2=driver2.getDriver_id();
-		Location truckLocation2=getCurrentLocation(driver_id2);
-		double truck2Speed=truckLocation2.getSpeed();
+
+		ArrayList<Location> locations=(ArrayList<Location>)locationRepository.findAll();
+		ArrayList<Location> locaDriver1=new ArrayList<Location>();
+		ArrayList<Location> locaDriver2=new ArrayList<Location>();
+		for( int i=0;i<locations.size();i++)
+		{
+			if(locations.get(i).getDriver()==driver1)
+			{
+				locaDriver1.add(locations.get(i));
+			}
+			if(locations.get(i).getDriver()==driver2)
+			{
+				locaDriver2.add(locations.get(i));
+			}
+		}
+		Location truckOneLocation = locaDriver1.get(locaDriver1.size()-1);
+		Location truckTwoLocation = locaDriver2.get(locaDriver2.size()-1);
+		double truck1Speed=truckOneLocation.getSpeed();
+		double truck2Speed=truckTwoLocation.getSpeed();
+		double dist=getDistance(truckOneLocation, truckTwoLocation);
 
 		if (truck2Speed <= truck1Speed)
 			return false; 		// No Accident
-		else if (dctrl.getDistanceBetweenTwoTruck(driver1 , driver2) <=1000)
+		else if (dist <=1000)
 			return true;		// Possible accident, distance <= 1km
 		else 
 		{	
-			double newLat1 = truckLocation1.getLat()+truck1Speed ;
-			double newLon1 = truckLocation1.getLon()+truck1Speed ;
-			double newLat2 = truckLocation2.getLat()+truck1Speed ;
-			double newLon2 = truckLocation2.getLon()+truck1Speed ;
-			System.out.println(newLat1 + "\t" + newLat2);
-			System.out.println(newLon1 + "\t" + newLon2);
+			double newLat1 = truckOneLocation.getLat()+truck1Speed ;
+			double newLon1 = truckOneLocation.getLon()+truck1Speed ;
+			double newLat2 = truckTwoLocation.getLat()+truck1Speed ;
+			double newLon2 = truckTwoLocation.getLon()+truck1Speed ;
+			//System.out.println(newLat1 + "\t" + newLat2);
+			//System.out.println(newLon1 + "\t" + newLon2);
 			if (newLat2>= newLat1 || newLon2 >= newLon1)
 				return true;	// Possible Accident
 								// if truck2 speed: 50, location:60, truck1 speed:30, location:120
 								// after 3 hrs the condition will be true that there'll be a possible clash
 		}
 		return false;
+
 	}
+
 	/* modified by amina*/
 	@RequestMapping(value="/{truckId}/getCurrentTrip",method=RequestMethod.GET)
 	public Trip getCurrentTrip(@PathVariable String truckId)
@@ -291,12 +308,82 @@ public class TruckRestController {
 		 return truckTrips.get(truckTrips.size()-1).getTrip_id();
 	}
 
+	@RequestMapping(value="/getTruck/{truck_id}",method=RequestMethod.GET)
+	public Truck getTruck(@PathVariable String truck_id)
+	{
+		if(truckRepository.findOne(truck_id)==null)
+		{
+			return null;
+		}
+		Truck truck =truckRepository.findOne(truck_id);
+		if(truck.getDeleted()==true)
+		{
+			return null;
+		}
+		return truck;
+	}
+	
+	
 	@RequestMapping(value="/getAllTrucks",method=RequestMethod.GET)
 	public ArrayList<Truck> getAllTrucks()
 	{
-		return (ArrayList<Truck>)truckRepository.findAll();
+		ArrayList<Truck> trucks=new ArrayList<Truck>();
+		ArrayList<Truck> AllTrucks=(ArrayList<Truck>)truckRepository.findAll();
+		for(int i=0;i<AllTrucks.size();i++)
+		{
+			if(AllTrucks.get(i).getDeleted()==false)
+			{
+				trucks.add(AllTrucks.get(i));
+			}
+		}
+		return trucks;
 	}
 	
+	@RequestMapping(value="/deleteAllTrucks",method=RequestMethod.GET)
+	public boolean deleteAllTrucks()
+	{
+		ArrayList<Truck> trucks= (ArrayList<Truck>)truckRepository.findAll();
+		for(int i=0;i<trucks.size();i++)
+		{
+			trucks.get(i).setDeleted(true);
+			if(truckRepository.save(trucks.get(i))==null)
+				return false;
+		}
+		return true;
+	}
+	
+	@RequestMapping(value="/deleteTruck/{truck_id}",method=RequestMethod.GET)
+	public boolean deleteTruck(@PathVariable String truck_id)
+	{
+		if(truckRepository.findOne(truck_id)==null)
+		{
+			return false;
+		}
+		else
+		{
+			Truck truck=truckRepository.findOne(truck_id);
+			truck.setDeleted(true);
+			if(truckRepository.save(truck)!=null)
+				return true;
+		}
+		return false;
+	}
+
+	
+	private double rad(double x) {
+		return x * Math.PI / 180;
+	}
+
+	private double getDistance(Location p1, Location p2) {
+		double R = 6378137; // Earthâ€™s mean radius in meter
+		double dLat = rad(p2.getLat() - p1.getLat());
+		double dLong = rad(p2.getLon() - p1.getLon());
+		double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+				+ Math.cos(rad(p1.getLat())) * Math.cos(rad(p2.getLat())) * Math.sin(dLong / 2) * Math.sin(dLong / 2);
+		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		double d = R * c;
+		return d; // return distance in meter
+	}
 	
 
 }

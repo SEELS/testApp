@@ -31,6 +31,9 @@ public class Location {
 	@Column(name = "speed")
 	private Double speed;
 	
+	@Column(name = "deleted")
+	private boolean deleted;
+	
 	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
 	@JoinColumn(name="truck_id")
 	private Truck truck;
@@ -45,16 +48,15 @@ public class Location {
 		super();
 	}
 
-	public Location(long id, Double lat, Double lon, Driver driver, Truck truck)
-	{
+	public Location(long id, Double lat, Double lon, Driver driver, boolean deleted
+			) {
 		super();
 		this.id = id;
 		this.lat = lat;
 		this.lon = lon;
 		this.driver = driver;
-		this.truck = truck ;
+		this.deleted=deleted;
 	}
-
 
 	public long getId() {
 		return id;
@@ -110,6 +112,13 @@ public class Location {
 
 	public void setSpeed(Double speed) {
 		this.speed = speed;
+	}
+	public boolean getDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
 	}
 	
 }

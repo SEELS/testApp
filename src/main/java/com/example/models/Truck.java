@@ -25,6 +25,9 @@ public class Truck {
 	@Column(name = "active")
 	private boolean active;
 	
+	@Column(name = "deleted")
+	private boolean deleted;
+	
 	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
 	@JoinColumn(name="driver_id")
 	private Driver driver;
@@ -73,6 +76,14 @@ public class Truck {
 
 	public void setActive(boolean active) {
 		this.active = active;
+	}
+	
+	public boolean getDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean del) {
+		this.deleted = del;
 	}
 
 	public Driver getDriver() {
