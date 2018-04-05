@@ -77,8 +77,10 @@ public class DriverRestController {
 					nearestDriver.add(driver);
 				}
 			}
-
+			
 			for (Driver driver : nearestDriver) {
+				/* Query are more effective in time this service call more than 4 time in 1 minute    
+				
 				ArrayList<Location> allLocations=(ArrayList<Location>)locationRepository.findAll();
 				ArrayList<Location> firstDriverLocations=new ArrayList<Location>();
 				for(int i=0;i<allLocations.size();i++)
@@ -89,7 +91,8 @@ public class DriverRestController {
 					}
 				}
 				Location driverLocation=firstDriverLocations.get(firstDriverLocations.size()-1);
-				//Location driverLocation = locationRepository.findFirstByDriverOrderByIdDesc(driver);
+				*/
+				Location driverLocation = locationRepository.findFirstByDriverOrderByIdDesc(driver);
 				nearestDriverLocation.add(driverLocation);
 			}
 		}
@@ -110,7 +113,7 @@ public class DriverRestController {
 		} else {
 			if (driver.getPassword().equals(password)) {
 				if (driver.getLogged())
-					logged = false;
+					logged = true;
 				else {
 					driver.setLogged(true);
 					logged = true;
