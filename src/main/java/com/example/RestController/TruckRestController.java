@@ -206,15 +206,7 @@ public class TruckRestController {
 		return false;
 	}
 	
-	@RequestMapping(value = "/{name}/saveDriver", method = RequestMethod.GET)
-	public boolean saveDriver2(@PathVariable long name ) {
-		Driver driver =driverRepository.findOne(name);
-		
-		driver.setDeleted(false);
-		if (driverRepository.save(driver) != null)
-			return true;
-		return false;
-	}
+
 	
 	/*check if there will be a frontal crushing with cars  */
 	@RequestMapping(value = "/{truck1_id}/{truck2_id}/changeInSpeed", method = RequestMethod.GET)
