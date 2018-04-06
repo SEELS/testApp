@@ -243,16 +243,18 @@ public class TruckRestController {
 				locaDriver2.add(locations.get(i));
 			}
 		}
-		Location truckOneLocation = locaDriver1.get(locaDriver1.size()-1);
-		Location truckTwoLocation = locaDriver2.get(locaDriver2.size()-1);
+		Location truckOneLocation = getCurrentLocation(driver1.getDriver_id());
+		Location truckTwoLocation = getCurrentLocation(driver2.getDriver_id());
+		//Location truckOneLocation = locaDriver1.get(locaDriver1.size()-1);
+		//Location truckTwoLocation = locaDriver2.get(locaDriver2.size()-1);
 		double truck1Speed=truckOneLocation.getSpeed();
 		double truck2Speed=truckTwoLocation.getSpeed();
 		double dist=getDistance(truckOneLocation, truckTwoLocation);
 
-		if (truck2Speed <= truck1Speed)
+		if (dist <=1000)
+			return true;	// Possible accident, distance <= 1km
+		else if (truck2Speed <= truck1Speed)
 			return false; 		// No Accident
-		else if (dist <=1000)
-			return true;		// Possible accident, distance <= 1km
 		else 
 		{	
 			double newLat1 = truckOneLocation.getLat()+truck1Speed ;
