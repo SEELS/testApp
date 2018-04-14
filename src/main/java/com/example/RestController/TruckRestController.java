@@ -199,11 +199,14 @@ public class TruckRestController {
 		driver.setName(name);
 		driver.setSsn(ssn);
 		driver.setPassword(password);
+		driver.setDeleted(false);
 		driver.setLogged(false);
 		if (driverRepository.save(driver) != null)
 			return true;
 		return false;
 	}
+	
+
 	
 	/*check if there will be a frontal crushing with cars  */
 	@RequestMapping(value = "/{truck1_id}/{truck2_id}/changeInSpeed", method = RequestMethod.GET)
