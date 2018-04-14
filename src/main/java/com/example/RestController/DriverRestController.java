@@ -132,11 +132,14 @@ public class DriverRestController {
 	
 	/*calculate penalty during trip*/
 	//Amina
-	@RequestMapping(value="/calculateSpeedPenalty/{locationId}/{civilSpeed}/{tripId}",method=RequestMethod.GET)
-	private void calculateSpeedPenalty (@PathVariable long locationId,@PathVariable double civilSpeed,@PathVariable long tripId)
+	@RequestMapping(value="/calculateSpeedPenalty/{lat}/{lon}/{civilSpeed}/{tripId}",method=RequestMethod.GET)
+	private void calculateSpeedPenalty (@PathVariable double lat , @PathVariable double lon ,@PathVariable double civilSpeed,@PathVariable long tripId)
 	{
 		Trip t=tripRepository.findOne(tripId);
-		Location location = locationRepository.findOne(locationId);
+		Location location = new Location();
+		location.setSpeed(110.0);
+		location.setLat(lat);
+		location.setLon(lon);
 		Penalties p=new Penalties();
 		
 			p=new Penalties();
@@ -150,11 +153,13 @@ public class DriverRestController {
 			penaltiesRepostitory.save(p);
 	}
 	//Amina
-	@RequestMapping(value="/calculateBrakePenalty/{locationId}/{previousSpeed}/{currentSpeed}/{tripId}",method=RequestMethod.GET)
-	public void calculateBrakePenalty(@PathVariable long locationId,@PathVariable double previousSpeed,@PathVariable double currentSpeed,@PathVariable long tripId)
+	@RequestMapping(value="/calculateBrakePenalty/{lat}/{lon}/{previousSpeed}/{currentSpeed}/{tripId}",method=RequestMethod.GET)
+	public void calculateBrakePenalty(@PathVariable double lat , @PathVariable double lon ,@PathVariable double previousSpeed,@PathVariable double currentSpeed,@PathVariable long tripId)
 	{
 		Trip trip = tripRepository.findOne(tripId);
-		Location location = locationRepository.findOne(locationId);
+		Location location = new Location();
+		location.setLat(lat);
+		location.setLon(lon);
 		double diffrence = Math.abs(previousSpeed-currentSpeed);
 		
 		if(diffrence>=50)
