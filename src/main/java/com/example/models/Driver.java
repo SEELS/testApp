@@ -15,7 +15,7 @@ public class Driver {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-	private long driver_id;
+	private long id;
 	
 	@Column(name = "name")
 	private String name;
@@ -44,7 +44,7 @@ public class Driver {
 	
 	public Driver(long driver_id, String name, String ssn, String token, boolean logged, String password,double rate) {
 		super();
-		this.driver_id = driver_id;
+		this.id = driver_id;
 		this.name = name;
 		this.ssn = ssn;
 		this.token=token;
@@ -64,11 +64,11 @@ public class Driver {
 	
 
 	public long getDriver_id() {
-		return driver_id;
+		return id;
 	}
 
 	public void setDriver_id(long driver_id) {
-		this.driver_id = driver_id;
+		this.id = driver_id;
 	}
 
 	public String getName() {

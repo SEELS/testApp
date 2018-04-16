@@ -15,7 +15,7 @@ public class Penalties {
 	
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-	private long penalties_id;
+	private long id;
 	
 	@Column(name = "type")
 	private String type;
@@ -42,7 +42,7 @@ public class Penalties {
 
 	public Penalties(long penalties_id, String type, double value, Trip trip, Location location) {
 		super();
-		this.penalties_id = penalties_id;
+		this.id = penalties_id;
 		this.type = type;
 		this.value = value;
 		this.trip = trip;
@@ -52,13 +52,13 @@ public class Penalties {
 
 
 	public long getPenalties_id() {
-		return penalties_id;
+		return id;
 	}
 
 
 
 	public void setPenalties_id(long penalties_id) {
-		this.penalties_id = penalties_id;
+		this.id = penalties_id;
 	}
 
 

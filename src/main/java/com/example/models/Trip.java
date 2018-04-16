@@ -1,6 +1,5 @@
 package com.example.models;
 
-import java.util.Date;
 import java.util.Set;
 
 import javax.persistence.CascadeType;
@@ -22,7 +21,7 @@ public class Trip {
 
 	@Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-	private long trip_id;
+	private long id;
 	
 	@Column(name = "rate")
 	private double rate;
@@ -66,7 +65,7 @@ public class Trip {
 			Set<Good> goods, Location source, Location destination, long parent,
 			Road road) {
 		super();
-		this.trip_id = trip_id;
+		this.id = trip_id;
 		this.rate = rate;
 		this.date = date;
 		this.driver = driver;
@@ -116,11 +115,11 @@ public class Trip {
 
 
 	public long getTrip_id() {
-		return trip_id;
+		return id;
 	}
 
 	public void setTrip_id(long trip_id) {
-		this.trip_id = trip_id;
+		this.id = trip_id;
 	}
 
 	public double getRate() {

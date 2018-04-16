@@ -14,7 +14,7 @@ import javax.persistence.Table;
 public class Truck {
 	
 	@Id
-	private String truck_id;
+	private String id;
 
 	@Column(name = "current_speed")
 	private double currentSpeed;
@@ -38,7 +38,7 @@ public class Truck {
 
 	public Truck(String truck_id, int currentSpeed, int previousSpeed, boolean active, Driver driver) {
 		super();
-		this.truck_id = truck_id;
+		this.id = truck_id;
 		this.currentSpeed = currentSpeed;
 		this.previousSpeed = previousSpeed;
 		this.active = active;
@@ -46,11 +46,11 @@ public class Truck {
 	}
 
 	public String getId() {
-		return this.truck_id;
+		return this.id;
 	}
 
 	public void setId(String id) {
-		this.truck_id = id;
+		this.id = id;
 	}
 
 

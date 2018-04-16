@@ -6,9 +6,11 @@ import org.springframework.data.repository.CrudRepository;
 
 import com.example.models.Driver;
 import com.example.models.Location;
+import com.example.models.Truck;
 
 public interface LocationRepository extends CrudRepository<Location, Long> {
 	public ArrayList<Location> findByDriver(Driver driver);
 	
 	public Location findFirstByDriverOrderByIdDesc(Driver driver);
+	public Location findFirstByTruckOrderByIdDesc(Truck truck);
 }

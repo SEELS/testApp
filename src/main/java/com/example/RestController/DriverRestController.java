@@ -25,22 +25,21 @@ import com.example.models.Trip;
 public class DriverRestController {
 	@Autowired
 	private DriverRepository driverRepository;
-	
+
 	@Autowired
 	private LocationRepository locationRepository;
-	
+
 	@Autowired
 	private PenaltiesRepostitory penaltiesRepostitory;
-	
+
 	@Autowired
 	private TripRepository tripRepository;
 
-	
 	public double getDistanceBetweenTwoTruck(Driver first, Driver second) {
 		Location truckOneLocation = locationRepository.findFirstByDriverOrderByIdDesc(first);
 		Location truckTwoLocation = locationRepository.findFirstByDriverOrderByIdDesc(second);
-		
-		if (truckOneLocation!=null &&truckTwoLocation!=null)
+
+		if (truckOneLocation != null && truckTwoLocation != null)
 			return getDistance(truckOneLocation, truckTwoLocation);
 		else
 			return Double.MAX_VALUE;
@@ -65,7 +64,7 @@ public class DriverRestController {
 	/* get nearest Trucks to my truck in specific range */
 	@RequestMapping(value = "/getNearLocation/{driverId}/{range}", method = RequestMethod.GET)
 	public ArrayList<Location> getNearTrucksToTruck(@PathVariable long driverId, @PathVariable double range) {
-		
+
 		ArrayList<Driver> nearestDriver = new ArrayList<>();
 		ArrayList<Location> nearestDriverLocation = new ArrayList<>();
 		ArrayList<Driver> allDriver = getAllDrivers();
@@ -77,21 +76,19 @@ public class DriverRestController {
 					nearestDriver.add(driver);
 				}
 			}
-			
+
 			for (Driver driver : nearestDriver) {
-				/* Query are more effective in time this service call more than 4 time in 1 minute    
-				
-				ArrayList<Location> allLocations=(ArrayList<Location>)locationRepository.findAll();
-				ArrayList<Location> firstDriverLocations=new ArrayList<Location>();
-				for(int i=0;i<allLocations.size();i++)
-				{
-					if(allLocations.get(i).getDriver()==driver)
-					{
-						firstDriverLocations.add(allLocations.get(i));
-					}
-				}
-				Location driverLocation=firstDriverLocations.get(firstDriverLocations.size()-1);
-				*/
+				/*
+				 * Query are more effective in time this service call more than 4 time in 1
+				 * minute
+				 * 
+				 * ArrayList<Location>
+				 * allLocations=(ArrayList<Location>)locationRepository.findAll();
+				 * ArrayList<Location> firstDriverLocations=new ArrayList<Location>(); for(int
+				 * i=0;i<allLocations.size();i++) { if(allLocations.get(i).getDriver()==driver)
+				 * { firstDriverLocations.add(allLocations.get(i)); } } Location
+				 * driverLocation=firstDriverLocations.get(firstDriverLocations.size()-1);
+				 */
 				Location driverLocation = locationRepository.findFirstByDriverOrderByIdDesc(driver);
 				nearestDriverLocation.add(driverLocation);
 			}
@@ -131,132 +128,169 @@ public class DriverRestController {
 			}
 			return temp;
 		}
-	}	
-	
-	/*calculate penalty during trip*/
-	//Amina
-	@RequestMapping(value="/calculateSpeedPenalty/{lat}/{lon}/{civilSpeed}/{tripId}",method=RequestMethod.GET)
-	private void calculateSpeedPenalty (@PathVariable double lat , @PathVariable double lon ,@PathVariable double civilSpeed,@PathVariable long tripId)
-	{
-		Trip t=tripRepository.findOne(tripId);
+	}
+
+	/* calculate penalty during trip */
+	// Amina
+	@RequestMapping(value = "/calculateSpeedPenalty/{lat}/{lon}/{civilSpeed}/{tripId}", method = RequestMethod.GET)
+	private void calculateSpeedPenalty(@PathVariable double lat, @PathVariable double lon,
+			@PathVariable double civilSpeed, @PathVariable long tripId) {
+		Trip t = tripRepository.findOne(tripId);
 		Location location = new Location();
 		location.setSpeed(110.0);
 		location.setLat(lat);
 		location.setLon(lon);
-		Penalties p=new Penalties();
-		
-			p=new Penalties();
-			double diffrence=Math.abs(location.getSpeed()-civilSpeed);
-			double penalty=0.0;
-			for (int i=10;i<=diffrence;i+=10)
-			{
-				penalty+=0.1;
-			}
-			p.setLocation(location); p.setTrip(t); p.setType("speed"); p.setValue(penalty);
-			penaltiesRepostitory.save(p);
+		Penalties p = new Penalties();
+
+		p = new Penalties();
+		double diffrence = Math.abs(location.getSpeed() - civilSpeed);
+		double penalty = 0.0;
+		for (int i = 10; i <= diffrence; i += 10) {
+			penalty += 0.1;
+		}
+		p.setLocation(location);
+		p.setTrip(t);
+		p.setType("speed");
+		p.setValue(penalty);
+		penaltiesRepostitory.save(p);
 	}
-	//Amina
-	@RequestMapping(value="/calculateBrakePenalty/{lat}/{lon}/{previousSpeed}/{currentSpeed}/{tripId}",method=RequestMethod.GET)
-	public void calculateBrakePenalty(@PathVariable double lat , @PathVariable double lon ,@PathVariable double previousSpeed,@PathVariable double currentSpeed,@PathVariable long tripId)
-	{
+
+	// Amina
+	@RequestMapping(value = "/calculateBrakePenalty/{lat}/{lon}/{previousSpeed}/{currentSpeed}/{tripId}", method = RequestMethod.GET)
+	public void calculateBrakePenalty(@PathVariable double lat, @PathVariable double lon,
+			@PathVariable double previousSpeed, @PathVariable double currentSpeed, @PathVariable long tripId) {
 		Trip trip = tripRepository.findOne(tripId);
 		Location location = new Location();
 		location.setLat(lat);
 		location.setLon(lon);
-		double diffrence = Math.abs(previousSpeed-currentSpeed);
-		
-		if(diffrence>=50)
-		{
-			Penalties p= new Penalties();
-			p.setLocation(location); p.setTrip(trip); p.setType("brake"); p.setValue(0.2);
+		double diffrence = Math.abs(previousSpeed - currentSpeed);
+
+		if (diffrence >= 50) {
+			Penalties p = new Penalties();
+			p.setLocation(location);
+			p.setTrip(trip);
+			p.setType("brake");
+			p.setValue(0.2);
 			penaltiesRepostitory.save(p);
 		}
-		
+
 	}
-	
-	
-	
-	
-	//get penalty, update driver rate and set tripRate 
-	/*by amina*/
-	@RequestMapping(value="/rate/{tripId}",method=RequestMethod.GET)
-	public double rate(@PathVariable long tripId)
-	{	
-		Trip trip=tripRepository.findOne(tripId);
-		Driver driver=trip.getDriver();
-		double tripRate=5.0;
+
+	// get penalty, update driver rate and set tripRate
+	/* by amina */
+	@RequestMapping(value = "/rate/{tripId}", method = RequestMethod.GET)
+	public double rate(@PathVariable long tripId) {
+		Trip trip = tripRepository.findOne(tripId);
+		Driver driver = trip.getDriver();
+		double tripRate = 5.0;
 		ArrayList<Penalties> ps = penaltiesRepostitory.findByTrip(trip);
-		for (int i=0;i<ps.size();i++)
-		{
-			tripRate-=ps.get(i).getValue();
+		for (int i = 0; i < ps.size(); i++) {
+			tripRate -= ps.get(i).getValue();
 		}
 		trip.setRate(tripRate);
 		tripRepository.save(trip);
 		ArrayList<Trip> driverTrips = tripRepository.findByDriver(driver);
-		double sum=0.0;
-		for (int i=0;i<driverTrips.size();i++)
-		{
-			sum+=driverTrips.get(i).getRate();
+		double sum = 0.0;
+		for (int i = 0; i < driverTrips.size(); i++) {
+			sum += driverTrips.get(i).getRate();
 		}
-		
-		double driverTotalRate=(double)sum/driverTrips.size();
+
+		double driverTotalRate = (double) sum / driverTrips.size();
 		driver.setRate(driverTotalRate);
 		driverRepository.save(driver);
-		
+
 		return driverTotalRate;
 	}
-	
-	
-	@RequestMapping(value="/getAllDrivers",method=RequestMethod.GET)
-	public ArrayList<Driver> getAllDrivers()
-	{
-		return (ArrayList<Driver>)driverRepository.findAll();
+
+	@RequestMapping(value = "/getAllDrivers", method = RequestMethod.GET)
+	public ArrayList<Driver> getAllDrivers() {
+		return driverRepository.findByDeleted(false);
 	}
-//get trucks speed by their id only then calculate the accident probability 
-	
-	@RequestMapping(value="/getDriver/{}",method=RequestMethod.GET)
-	public Driver getDriver(@PathVariable long driver_id)
-	{
-		if(driverRepository.findOne(driver_id)==null)
-		{
-			return null;
+	// get trucks speed by their id only then calculate the accident probability
+
+	@RequestMapping(value = "/getDriver/{driver_id}", method = RequestMethod.GET)
+	public Map<String,Object> getDriver(@PathVariable long driver_id) {
+		Map<String,Object> res = new HashMap<>();
+		if (driverRepository.findOne(driver_id) == null) {
+			res.put("Error", "there's no dirver with that Id");
 		}
-		Driver driver =driverRepository.findOne(driver_id);
-		if(driver.getDeleted()==true)
-		{
-			return null;
+		Driver driver = driverRepository.findOne(driver_id);
+		if (driver.getDeleted() == true) {
+			res.put("Error", "this Driver are deleted");
 		}
-		return driver;
+		res.put("Success", driver);
+		return res;
 	}
-	
-	@RequestMapping(value="/deleteAllDrivers",method=RequestMethod.GET)
-	public boolean deleteAllDrivers()
-	{
-		ArrayList<Driver> drivers= (ArrayList<Driver>)driverRepository.findAll();
-		for(int i=0;i<drivers.size();i++)
-		{
+
+	@RequestMapping(value = "/deleteAllDrivers", method = RequestMethod.GET)
+	public Map<String,String> deleteAllDrivers() {
+		Map<String,String> res = new HashMap<>();
+		ArrayList<Driver> drivers = (ArrayList<Driver>) driverRepository.findAll();
+		for (int i = 0; i < drivers.size(); i++) {
 			drivers.get(i).setDeleted(true);
-			if(driverRepository.save(drivers.get(i))==null)
-				return false;
+			if (driverRepository.save(drivers.get(i)) == null)
+				res.put("Error","error in connection to Server");
 		}
-		return true;
+		res.put("Success", "Drivers Deleted!");
+		return res;
 	}
-	
-	@RequestMapping(value="/deleteDriver/{driver_id}",method=RequestMethod.GET)
-	public boolean deleteTruck(@PathVariable long driver_id)
-	{
-		if(driverRepository.findOne(driver_id)==null)
-		{
-			return false;
-		}
-		else
-		{
-			Driver driver=driverRepository.findOne(driver_id);
+
+	@RequestMapping(value = "/deleteDriver/{driver_id}", method = RequestMethod.GET)
+	public Map<String,String> deleteDriver(@PathVariable long driver_id) {
+		Map<String,String> res = new HashMap<>();
+		if (driverRepository.findOne(driver_id) == null) {
+			res.put("Error","Wrong Driver Id");
+		} else {
+			Driver driver = driverRepository.findOne(driver_id);
+			if(driver.getDeleted())
+			{
+				res.put("Error","Wrong Driver Id");
+			}
+			else{
+			// to keep history of driver
 			driver.setDeleted(true);
-			if(driverRepository.save(driver)!=null)
-				return true;
+			if (driverRepository.save(driver) != null)
+				res.put("Success", "Driver Deleted!");
+			}
 		}
-		return false;
+		return res;
+	}
+
+	/* if the manager wants to save a driver from the web site */
+	@RequestMapping(value = "/{name}/{ssn}/{password}/saveDriver", method = RequestMethod.GET)
+	public Map<String,String> saveDriver(@PathVariable String name, @PathVariable String ssn, @PathVariable String password) {
+		Map<String,String> res = new HashMap<>();
+		Driver driver_ = driverRepository.findBySsn(ssn);
+		if (driver_ != null) {
+			if(driver_.getDeleted())
+			{
+				driver_.setName(name);
+				driver_.setSsn(ssn);
+				driver_.setPassword(password);
+				driver_.setDeleted(false);
+				driver_.setLogged(false);
+				driver_.setRate(5.0);
+				if (driverRepository.save(driver_) != null)
+					res.put("Success", driver_.getDriver_id()+"");
+				res.put("Error", "error in connection to Server");
+
+			}
+			else
+				// error that ssn in my system
+				res.put("Error", "there is driver with that ssn");
+		} else {
+			Driver driver = new Driver();
+			driver.setName(name);
+			driver.setSsn(ssn);
+			driver.setPassword(password);
+			driver.setDeleted(false);
+			driver.setLogged(false);
+			driver.setRate(5.0);
+			if (driverRepository.save(driver) != null)
+				res.put("Success", driver.getDriver_id()+"");
+			res.put("Error", "error in connection to Server");
+		}
+		return res;
 	}
 
 }
