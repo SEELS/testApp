@@ -57,10 +57,10 @@ public class Trip {
 	@Column(name = "parent")
 	private long parent;
 	/*
-	 * to check if trip is complete or not
+	 * to check if trip is complete or not or in process 0-> end , 1->not start , 2->in process  
 	 * */
-	@Column(name = "complete")
-	private boolean complete;
+	@Column(name = "state")
+	private int state;
 
 
 	public Trip() {
@@ -174,6 +174,14 @@ public class Trip {
 
 	public void setGoods(Set<Good> goods) {
 		this.goods = goods;
+	}
+
+	public int getState() {
+		return state;
+	}
+
+	public void setState(int state) {
+		this.state = state;
 	}
 
 	
