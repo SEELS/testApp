@@ -178,7 +178,52 @@ public class TripRestController {
 		return (ArrayList<Trip>)tripRepository.findAll();
 	}
 	
-	 public static boolean isValidDate(String inDate) {
+	@RequestMapping(value="/getTrip/{trip_id}",method=RequestMethod.GET)
+	public Trip getTrip(@PathVariable long trip_id)
+	{
+		if(tripRepository.findOne(trip_id)==null)
+		{
+			return null;
+		}
+		Trip trip =tripRepository.findOne(trip_id);
+		if(trip.getDeleted()==true)
+		{
+			return null;
+		}
+		return trip;
+	}
+	
+	@RequestMapping(value="/deleteAllTrips",method=RequestMethod.GET)
+	public boolean deleteAllTrips()
+	{
+		ArrayList<Trip> trips= (ArrayList<Trip>)tripRepository.findAll();
+		for(int i=0;i<trips.size();i++)
+		{
+			trips.get(i).setDeleted(true);
+			if(tripRepository.save(trips.get(i))==null)
+				return false;
+		}
+		return true;
+	}
+	
+	@RequestMapping(value="/deleteTrip/{trip_id}",method=RequestMethod.GET)
+	public boolean deleteTrip(@PathVariable long trip_id)
+	{
+		if(tripRepository.findOne(trip_id)==null)
+		{
+			return false;
+		}
+		else
+		{
+			Trip trip=tripRepository.findOne(trip_id);
+			trip.setDeleted(true);
+			if(tripRepository.save(trip)!=null)
+				return true;
+		}
+		return false;
+	}
+
+	public static boolean isValidDate(String inDate) {
 	        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 	        dateFormat.setLenient(false);
 	        try {
