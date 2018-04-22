@@ -168,9 +168,149 @@ public class TripRestController {
 	        Date date = new Date();
 	        System.out.println(dateFormat.format(date));
 	        ArrayList<Trip>trips = tripRepository.findByDriverAndDateGreaterThanEqual(driver,date); 
+	        if(trips==null)
+	        {
+	        	res.put("Error","There's no Trips to that Driver");
+	        }
+	        else
+	        {
+	        	res.put("Success", trips.get(0).getTrip_id());
+	        }
 		}
 		return res;
 	}
+	/* it gets an object of a specific truck, helping to get truck data */
+	@RequestMapping(value = "/SetDriverToTruck/{driver_id}/{Truck_id}", method = RequestMethod.GET)
+	public Map<String, String> SetDriverToTruck(@PathVariable String Truck_id, @PathVariable long driver_id) {
+		Map<String, String> res = new HashMap<>();
+		if(driver_id==0)
+		{
+			Truck truck = truckRepository.findOne(Truck_id);
+			if (truck == null) {
+				res.put("Error", "truck Not found");
+			} else {
+				truck.setDriver(null);
+				if (truckRepository.save(truck) != null)
+					res.put("Success", "Done !!");
+				else
+					res.put("Error", "Error Update in dataBase");
+			}
+		}
+		else
+		{
+			Driver driver = driverRepository.findOne(driver_id);
+			if (driver == null) {
+				res.put("Error", "Driver Not found");
+			} else {
+				Truck truck = truckRepository.findOne(Truck_id);
+				if (truck == null) {
+					res.put("Error", "truck Not found");
+				} else {
+					truck.setDriver(driver);
+					if (truckRepository.save(truck) != null)
+						res.put("Success", "Done !!");
+					else
+						res.put("Error", "Error Update in dataBase");
+				}
+			}
+		}
+		return res;
+	}
+
+	/* it gets an object of a specific truck, helping to get truck data */
+	@RequestMapping(value = "/changeTruckState/{state}/{Truck_id}", method = RequestMethod.GET)
+	public Map<String, String> changeTruckstate(@PathVariable String Truck_id, @PathVariable boolean state) {
+		Map<String, String> res = new HashMap<>();
+		Truck truck = truckRepository.findOne(Truck_id);
+		if (truck == null) {
+			res.put("Error", "Truck Not found");
+		} else {
+			truck.setActive(state);
+			if (truckRepository.save(truck) == null) {
+				res.put("Error", "Error in update in database !!");
+			} else
+				res.put("Success", "Done !!");
+		}
+		return res;
+	}
+
+	@RequestMapping(value = "/startTrip/{driverId}/{tripId}", method = RequestMethod.GET)
+	public Map<String,Object> startTrip(@PathVariable long driverId,@PathVariable long tripId)
+	{
+		Map<String,Object> res = new HashMap<>();
+		Driver driver = driverRepository.findOne(driverId);
+		if(driver==null)
+		{
+			res.put("Error","There's no driver with that Id");
+		}
+		else
+		{
+			Trip trip  = tripRepository.findOne(tripId);
+			if(trip==null)
+	        {
+	        	res.put("Error","There's no Trip to that Driver");
+	        }
+	        else
+	        {
+	        	Truck truck  = trip.getTruck();
+	        	Map<String, String> temp = SetDriverToTruck(truck.getId(),driverId);
+	        	if(temp.containsKey("Error"))
+	        		res.put("Error", temp.get("Error"));
+	        	else
+	        	{
+	        		temp =changeTruckstate(truck.getId(),true);
+	        		if(temp.containsKey("Error"))
+	        			res.put("Error",temp.get("Error"));
+	        		else
+	        		{
+	        			trip.setState(2);
+	        			// road ??
+	        		}
+	        	}
+	        	
+	        }
+		}
+		return res;
+	}
+	
+	@RequestMapping(value = "/endTrip/{driverId}/{tripId}", method = RequestMethod.GET)
+	public Map<String,Object> endTrip(@PathVariable long driverId,@PathVariable long tripId)
+	{
+		Map<String,Object> res = new HashMap<>();
+		Driver driver = driverRepository.findOne(driverId);
+		if(driver==null)
+		{
+			res.put("Error","There's no driver with that Id");
+		}
+		else
+		{
+			Trip trip  = tripRepository.findOne(tripId);
+			if(trip==null)
+	        {
+	        	res.put("Error","There's no Trip to that Driver");
+	        }
+	        else
+	        {
+	        	Truck truck  = trip.getTruck();
+	        	Map<String, String> temp = SetDriverToTruck(truck.getId(),0);
+	        	if(temp.containsKey("Error"))
+	        		res.put("Error", temp.get("Error"));
+	        	else
+	        	{
+	        		temp =changeTruckstate(truck.getId(),false);
+	        		if(temp.containsKey("Error"))
+	        			res.put("Error",temp.get("Error"));
+	        		else
+	        		{
+	        			trip.setState(0);
+	        		}
+	        	}
+	        	
+	        }
+		}
+		return res;
+	}
+	
 	
 	@RequestMapping(value="/getAllTrips",method=RequestMethod.GET)
 	public ArrayList<Trip> getAllTrips()
