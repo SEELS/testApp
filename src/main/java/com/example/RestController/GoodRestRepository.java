@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Repostitory.GoodRepository;
 import com.example.Repostitory.TripRepository;
+import com.example.models.Good;
 import com.example.models.Truck;
 
 @RestController
