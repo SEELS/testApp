@@ -153,7 +153,7 @@ public class TripRestController {
 	}
 	
 	
-	@RequestMapping(value = "/driverTrips/{driverId}", method = RequestMethod.GET)
+	@RequestMapping(value = "/driverTrip/{driverId}", method = RequestMethod.GET)
 	public Map<String,Object> getDriverTrip(@PathVariable long driverId)
 	{
 		Map<String,Object> res = new HashMap<>();
@@ -167,7 +167,7 @@ public class TripRestController {
 			DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 	        Date date = new Date();
 	        System.out.println(dateFormat.format(date));
-	        ArrayList<Trip>trips = tripRepository.findByDateGreaterThanEqual(date); 
+	        ArrayList<Trip>trips = tripRepository.findByDriverAndDateGreaterThanEqual(driver,date); 
 		}
 		return res;
 	}
