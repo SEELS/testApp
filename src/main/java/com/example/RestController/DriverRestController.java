@@ -209,48 +209,48 @@ public class DriverRestController {
 	// get trucks speed by their id only then calculate the accident probability
 
 	@RequestMapping(value = "/getDriver/{driver_id}", method = RequestMethod.GET)
-	public Map<String,Object> getDriver(@PathVariable long driver_id) {
-		Map<String,Object> res = new HashMap<>();
-		if (driverRepository.findOne(driver_id) == null) {
-			res.put("Error", "there's no dirver with that Id");
-		}
+	public Map<String, Object> getDriver(@PathVariable long driver_id) {
+		Map<String, Object> res = new HashMap<>();
 		Driver driver = driverRepository.findOne(driver_id);
-		if (driver.getDeleted() == true) {
-			res.put("Error", "this Driver are deleted");
+		if (driver == null) {
+			res.put("Error", "there's no dirver with that Id");
+		} else {
+			if (driver.getDeleted() == true) {
+				res.put("Error", "this Driver are deleted");
+			} else
+				res.put("Success", driver);
 		}
-		res.put("Success", driver);
 		return res;
 	}
 
 	@RequestMapping(value = "/deleteAllDrivers", method = RequestMethod.GET)
-	public Map<String,String> deleteAllDrivers() {
-		Map<String,String> res = new HashMap<>();
+	public Map<String, String> deleteAllDrivers() {
+		Map<String, String> res = new HashMap<>();
 		ArrayList<Driver> drivers = (ArrayList<Driver>) driverRepository.findAll();
 		for (int i = 0; i < drivers.size(); i++) {
 			drivers.get(i).setDeleted(true);
 			if (driverRepository.save(drivers.get(i)) == null)
-				res.put("Error","error in connection to Server");
+				res.put("Error", "error in connection to Server");
 		}
-		res.put("Success", "Drivers Deleted!");
+		if (res.isEmpty())
+			res.put("Success", "Drivers Deleted!");
 		return res;
 	}
 
 	@RequestMapping(value = "/deleteDriver/{driver_id}", method = RequestMethod.GET)
-	public Map<String,String> deleteDriver(@PathVariable long driver_id) {
-		Map<String,String> res = new HashMap<>();
+	public Map<String, String> deleteDriver(@PathVariable long driver_id) {
+		Map<String, String> res = new HashMap<>();
 		if (driverRepository.findOne(driver_id) == null) {
-			res.put("Error","Wrong Driver Id");
+			res.put("Error", "Wrong Driver Id");
 		} else {
 			Driver driver = driverRepository.findOne(driver_id);
-			if(driver.getDeleted())
-			{
-				res.put("Error","Wrong Driver Id");
-			}
-			else{
-			// to keep history of driver
-			driver.setDeleted(true);
-			if (driverRepository.save(driver) != null)
-				res.put("Success", "Driver Deleted!");
+			if (driver.getDeleted()) {
+				res.put("Error", "Wrong Driver Id");
+			} else {
+				// to keep history of driver
+				driver.setDeleted(true);
+				if (driverRepository.save(driver) != null)
+					res.put("Success", "Driver Deleted!");
 			}
 		}
 		return res;
@@ -258,12 +258,12 @@ public class DriverRestController {
 
 	/* if the manager wants to save a driver from the web site */
 	@RequestMapping(value = "/{name}/{ssn}/{password}/saveDriver", method = RequestMethod.GET)
-	public Map<String,String> saveDriver(@PathVariable String name, @PathVariable String ssn, @PathVariable String password) {
-		Map<String,String> res = new HashMap<>();
+	public Map<String, String> saveDriver(@PathVariable String name, @PathVariable String ssn,
+			@PathVariable String password) {
+		Map<String, String> res = new HashMap<>();
 		Driver driver_ = driverRepository.findBySsn(ssn);
 		if (driver_ != null) {
-			if(driver_.getDeleted())
-			{
+			if (driver_.getDeleted()) {
 				driver_.setName(name);
 				driver_.setSsn(ssn);
 				driver_.setPassword(password);
@@ -271,11 +271,11 @@ public class DriverRestController {
 				driver_.setLogged(false);
 				driver_.setRate(5.0);
 				if (driverRepository.save(driver_) != null)
-					res.put("Success", driver_.getDriver_id()+"");
-				res.put("Error", "error in connection to Server");
+					res.put("Success", driver_.getDriver_id() + "");
+				else
+					res.put("Error", "error in connection to Server");
 
-			}
-			else
+			} else
 				// error that ssn in my system
 				res.put("Error", "there is driver with that ssn");
 		} else {
@@ -287,8 +287,9 @@ public class DriverRestController {
 			driver.setLogged(false);
 			driver.setRate(5.0);
 			if (driverRepository.save(driver) != null)
-				res.put("Success", driver.getDriver_id()+"");
-			res.put("Error", "error in connection to Server");
+				res.put("Success", driver.getDriver_id() + "");
+			else
+				res.put("Error", "error in connection to Server");
 		}
 		return res;
 	}

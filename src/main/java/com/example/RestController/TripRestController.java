@@ -1,6 +1,12 @@
 package com.example.RestController;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,15 +60,6 @@ public class TripRestController {
 
 		Truck truck=truckRepository.findOne(truck_id);
 		Road road=roadRepository.findOne(road_id);
-//		
-//		if(parent_id==0)
-//		{
-//			parent=null;
-//		}
-//		else
-//		{
-//			parent=tripRepository.findOne(parent_id);
-//		}
 		Location source = new Location();
 		source.setLat(slat);
 		source.setLon(slon);
@@ -79,20 +76,32 @@ public class TripRestController {
 			{
 				Trip trip=new Trip();
 				trip.setRate(5.0);
-				trip.setDate(date);
-				trip.setDriver(driver);
-				trip.setDestination(destination);
-				trip.setSource(source);
-				trip.setParent(parent_id);
-				trip.setSource(source);
-				trip.setTruck(truck);
-				trip.setRoad(road);
-				if(tripRepository.save(trip)!=null)
-				{
-					res.put("Success", "location are added");
+				if(isValidDate(date)) {
+					DateFormat df = new SimpleDateFormat("dd-MM-yyyy"); 
+					Date startDate=null;
+					try {
+						startDate = df.parse(date);
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					trip.setDate(startDate);
+					trip.setDriver(driver);
+					trip.setDestination(destination);
+					trip.setSource(source);
+					trip.setParent(parent_id);
+					trip.setSource(source);
+					trip.setTruck(truck);
+					trip.setRoad(road);
+					if(tripRepository.save(trip)!=null)
+					{
+						res.put("Success", "location are added");
+					}
+					else
+						res.put("Error","Trip not save Database Error");
 				}
-				else
-					res.put("Error","Trip not save Database Error");
+					
+				
 			
 			}
 			else
@@ -143,9 +152,40 @@ public class TripRestController {
 		return roadLocation;
 	}
 	
+	
+	@RequestMapping(value = "/driverTrips/{driverId}", method = RequestMethod.GET)
+	public Map<String,Object> getDriverTrip(@PathVariable long driverId)
+	{
+		Map<String,Object> res = new HashMap<>();
+		Driver driver = driverRepository.findOne(driverId);
+		if(driver==null)
+		{
+			res.put("Error","There's no driver with that Id");
+		}
+		else
+		{
+			DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+	        Date date = new Date();
+	        System.out.println(dateFormat.format(date));
+	        ArrayList<Trip>trips = tripRepository.findByDateGreaterThanEqual(date); 
+		}
+		return res;
+	}
+	
 	@RequestMapping(value="/getAllTrips",method=RequestMethod.GET)
 	public ArrayList<Trip> getAllTrips()
 	{
 		return (ArrayList<Trip>)tripRepository.findAll();
 	}
+	
+	 public static boolean isValidDate(String inDate) {
+	        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+	        dateFormat.setLenient(false);
+	        try {
+	            dateFormat.parse(inDate.trim());
+	        } catch (ParseException pe) {
+	            return false;
+	        }
+	        return true;
+	    }
 }
