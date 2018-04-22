@@ -1,6 +1,7 @@
 package com.example.Repostitory;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 import org.springframework.data.repository.CrudRepository;
 
@@ -12,5 +13,6 @@ public interface TripRepository extends CrudRepository<Trip, Long> {
 
 	public ArrayList<Trip> findByDriver(Driver driver);
 	public Trip findFirstByTruckOrderByIdDesc(Truck truck);
+	public ArrayList<Trip> findByDateGreaterThanEqual(Date date);
 
 }
