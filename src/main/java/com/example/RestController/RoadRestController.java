@@ -119,6 +119,56 @@ public class RoadRestController {
 		return (ArrayList<Road>)roadRepository.findAll();
 	}
 
+	@RequestMapping(value = "/getRoadByTrip/{trip_id}", method = RequestMethod.GET)
+	public ArrayList<Location> getRoadByTrip(@PathVariable long trip_id) 
+	{
+		ArrayList<CheckPoints> checkPoint=(ArrayList<CheckPoints>)checkPointsRepository.findAll();
+		ArrayList<CheckPoints> checkPoints=new ArrayList<CheckPoints>();
+		Trip trip=tripRepository.findOne(trip_id);
+		for(int i=0;i<checkPoint.size();i++)
+		{
+			if(checkPoint.get(i).getTrip()==trip)
+			{
+				checkPoints.add(checkPoint.get(i));
+			}
+		}
+		ArrayList<Location> locations=new ArrayList<Location>();
+		for(int i=0;i<checkPoints.size();i++)
+		{
+			locations.add(checkPoints.get(i).getLocation());
+		}
+		return locations;
+	}
+
+	@RequestMapping(value="/deleteAllRoads",method=RequestMethod.GET)
+	public boolean deleteAllRoads()
+	{
+		ArrayList<Road> roads= (ArrayList<Road>)roadRepository.findAll();
+		for(int i=0;i<roads.size();i++)
+		{
+			roads.get(i).setDeleted(true);
+			if(roadRepository.save(roads.get(i))==null)
+				return false;
+		}
+		return true;
+	}
+	
+	@RequestMapping(value="/deleteRoad/{road_id}",method=RequestMethod.GET)
+	public boolean deleteRoad(@PathVariable long road_id)
+	{
+		if(roadRepository.findOne(road_id)==null)
+		{
+			return false;
+		}
+		else
+		{
+			Road road=roadRepository.findOne(road_id);
+			road.setDeleted(true);
+			if(roadRepository.save(road)!=null)
+				return true;
+		}
+		return false;
+	}
 	
 	
 }

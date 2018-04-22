@@ -22,6 +22,7 @@ import com.example.models.Good;
 import com.example.models.Location;
 import com.example.models.Road;
 import com.example.models.Trip;
+import com.example.models.Truck;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -74,6 +75,7 @@ public class CheckPointsRestController {
 		checkPoints.setLocation(location);
 		checkPoints.setTrip(trip);
 		checkPoints.setRoad(road);
+		checkPoints.setDeleted(false);
 		if (checkPointsRepository.save(checkPoints) != null)
 			return true;
 		return false;
@@ -82,6 +84,60 @@ public class CheckPointsRestController {
 	@RequestMapping(value="/getAllCheckPoints",method=RequestMethod.GET)
 	public ArrayList<CheckPoints> getAllCheckPoints()
 	{
-		return (ArrayList<CheckPoints>)checkPointsRepository.findAll();
+		ArrayList<CheckPoints> checkPoints=new ArrayList<CheckPoints>();
+		ArrayList<CheckPoints> AllCheckPoints=(ArrayList<CheckPoints>)checkPointsRepository.findAll();
+		for(int i=0;i<AllCheckPoints.size();i++)
+		{
+			if(AllCheckPoints.get(i).getDeleted()==false)
+			{
+				checkPoints.add(AllCheckPoints.get(i));
+			}
+		}
+		return checkPoints;
+	}
+	
+	@RequestMapping(value="/getCheckPoints/{checkPoint_id}",method=RequestMethod.GET)
+	public CheckPoints getCheckPoints(@PathVariable long checkPoint_id)
+	{
+		if(checkPointsRepository.findOne(checkPoint_id)==null)
+		{
+			return null;
+		}
+		CheckPoints checkPoints =checkPointsRepository.findOne(checkPoint_id);
+		if(checkPoints.getDeleted()==true)
+		{
+			return null;
+		}
+		return checkPoints;
+	}
+	
+	@RequestMapping(value="/deleteAllCheckPoints",method=RequestMethod.GET)
+	public boolean deleteAllCheckPoints()
+	{
+		ArrayList<CheckPoints> checkPoints= (ArrayList<CheckPoints>)checkPointsRepository.findAll();
+		for(int i=0;i<checkPoints.size();i++)
+		{
+			checkPoints.get(i).setDeleted(true);
+			if(checkPointsRepository.save(checkPoints.get(i))==null)
+				return false;
+		}
+		return true;
+	}
+	
+	@RequestMapping(value="/deleteCheckPoints/{checkPoints_id}",method=RequestMethod.GET)
+	public boolean deleteCheckPoints(@PathVariable long checkPoint_id)
+	{
+		if(checkPointsRepository.findOne(checkPoint_id)==null)
+		{
+			return false;
+		}
+		else
+		{
+			CheckPoints checkPoints=checkPointsRepository.findOne(checkPoint_id);
+			checkPoints.setDeleted(true);
+			if(checkPointsRepository.save(checkPoints)!=null)
+				return true;
+		}
+		return false;
 	}
 }
