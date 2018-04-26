@@ -1,6 +1,6 @@
 package com.example.models;
 
-import java.sql.Date;
+import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -29,6 +29,9 @@ public class Good {
 	
 	@Column(name = "num_of_goods")
 	private int num_of_goods;
+	
+	@Column(name = "deleted")
+	private boolean deleted;
 	
 	
 	
@@ -82,8 +85,8 @@ public class Good {
 		return date;
 	}
 
-	public void setDate(Date date) {
-		this.date = date;
+	public void setDate(Date startDate) {
+		this.date = startDate;
 	}
 
 	public int getState() {
@@ -101,6 +104,20 @@ public class Good {
 	public void setNum_of_goods(int num_of_goods) {
 		this.num_of_goods = num_of_goods;
 	}
+
+
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
+
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
+	}
+	
+	
 
 	
 	
