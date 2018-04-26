@@ -115,7 +115,11 @@ public class TruckRestController {
 	@RequestMapping(value = "/viewTruckLocation/{truck_id}", method = RequestMethod.GET)
 	public Map<String, Object> getCurrentLocation(@PathVariable String truck_id) {
 		Map<String, Object> res = new HashMap<>();
-		Truck truck = truckRepository.findOne(truck_id);
+		System.out.println("in fun");
+		System.err.println("tr"+truck_id);
+
+		Truck truck = truckRepository.findById(truck_id);
+		System.err.println("tr"+truck_id);
 		if (truck == null)
 			res.put("Error","there's no truck with that Id");
 		else {

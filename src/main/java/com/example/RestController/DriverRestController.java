@@ -19,6 +19,7 @@ import com.example.models.Driver;
 import com.example.models.Location;
 import com.example.models.Penalties;
 import com.example.models.Trip;
+import com.example.models.Truck;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -132,18 +133,22 @@ public class DriverRestController {
 
 	/* calculate penalty during trip */
 	// Amina
-	@RequestMapping(value = "/calculateSpeedPenalty/{lat}/{lon}/{civilSpeed}/{tripId}", method = RequestMethod.GET)
-	private void calculateSpeedPenalty(@PathVariable double lat, @PathVariable double lon,
-			@PathVariable double civilSpeed, @PathVariable long tripId) {
+	@RequestMapping(value = "/calculateSpeedPenalty/{tripId}", method = RequestMethod.GET)
+	public Map<String,Double> calculateSpeedPenalty(@PathVariable long tripId) {
+		double civilSpeed=90.0;
 		Trip t = tripRepository.findOne(tripId);
+		System.out.println("id="+t.getTruck().getId());
+		Truck truck=t.getTruck();
 		Location location = new Location();
-		location.setSpeed(110.0);
-		location.setLat(lat);
-		location.setLon(lon);
-		Penalties p = new Penalties();
 
-		p = new Penalties();
-		double diffrence = Math.abs(location.getSpeed() - civilSpeed);
+		location=locationRepository.findFirstByTruckOrderByIdDesc(truck);//trc.getCurrentLocation(truck.getId());
+		
+		
+	
+		Penalties p = new Penalties();
+		
+		location.setSpeed(70.0);
+		double diffrence = location.getSpeed() - civilSpeed;
 		double penalty = 0.0;
 		for (int i = 10; i <= diffrence; i += 10) {
 			penalty += 0.1;
@@ -153,16 +158,21 @@ public class DriverRestController {
 		p.setType("speed");
 		p.setValue(penalty);
 		penaltiesRepostitory.save(p);
+		Map<String,Double> res=new HashMap<>();
+		if(penaltiesRepostitory.findByTrip(t)!=null)
+			res.put("driver total rate is", rate(tripId)); 
+		else
+			res.put("Error",rate(tripId));
+		return res;
 	}
 
 	// Amina
-	@RequestMapping(value = "/calculateBrakePenalty/{lat}/{lon}/{previousSpeed}/{currentSpeed}/{tripId}", method = RequestMethod.GET)
-	public void calculateBrakePenalty(@PathVariable double lat, @PathVariable double lon,
-			@PathVariable double previousSpeed, @PathVariable double currentSpeed, @PathVariable long tripId) {
+	@RequestMapping(value = "/calculateBrakePenalty/{previousSpeed}/{currentSpeed}/{tripId}", method = RequestMethod.GET)
+	public Map<String,Double> calculateBrakePenalty(@PathVariable double previousSpeed, @PathVariable double currentSpeed, @PathVariable long tripId) {
 		Trip trip = tripRepository.findOne(tripId);
+		Truck truck=trip.getTruck();
 		Location location = new Location();
-		location.setLat(lat);
-		location.setLon(lon);
+		location=locationRepository.findFirstByTruckOrderByIdDesc(truck);
 		double diffrence = Math.abs(previousSpeed - currentSpeed);
 
 		if (diffrence >= 50) {
@@ -172,7 +182,15 @@ public class DriverRestController {
 			p.setType("brake");
 			p.setValue(0.2);
 			penaltiesRepostitory.save(p);
+		
 		}
+		Map<String,Double> res=new HashMap<>();
+		
+		if(penaltiesRepostitory.findByTrip(trip)!=null)
+			res.put("driver total rate is", rate(tripId)); 
+		else
+			res.put("Error",rate(tripId));
+		return res;
 
 	}
 
@@ -185,8 +203,12 @@ public class DriverRestController {
 		double tripRate = 5.0;
 		ArrayList<Penalties> ps = penaltiesRepostitory.findByTrip(trip);
 		for (int i = 0; i < ps.size(); i++) {
+			
+			
 			tripRate -= ps.get(i).getValue();
+			
 		}
+
 		trip.setRate(tripRate);
 		tripRepository.save(trip);
 		ArrayList<Trip> driverTrips = tripRepository.findByDriver(driver);
@@ -218,7 +240,8 @@ public class DriverRestController {
 		if (driver.getDeleted() == true) {
 			res.put("Error", "this Driver are deleted");
 		}
-		res.put("Success", driver);
+		else
+			res.put("Success", driver);
 		return res;
 	}
 
@@ -231,7 +254,8 @@ public class DriverRestController {
 			if (driverRepository.save(drivers.get(i)) == null)
 				res.put("Error","error in connection to Server");
 		}
-		res.put("Success", "Drivers Deleted!");
+		if (res.isEmpty())
+			res.put("Success", "Drivers Deleted!");
 		return res;
 	}
 
@@ -272,6 +296,7 @@ public class DriverRestController {
 				driver_.setRate(5.0);
 				if (driverRepository.save(driver_) != null)
 					res.put("Success", driver_.getDriver_id()+"");
+				else
 				res.put("Error", "error in connection to Server");
 
 			}
@@ -288,6 +313,7 @@ public class DriverRestController {
 			driver.setRate(5.0);
 			if (driverRepository.save(driver) != null)
 				res.put("Success", driver.getDriver_id()+"");
+			else
 			res.put("Error", "error in connection to Server");
 		}
 		return res;

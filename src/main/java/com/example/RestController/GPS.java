@@ -38,9 +38,9 @@ public class GPS {
 	/* saving location with a specific driver and speed */
 	// sara & sameh Edit 3/4/2018 1:20 Dr :Shawky
 	@RequestMapping(value = "/{lat}/{lon}/{speed}/{driver_id}/saveLocation", method = RequestMethod.GET)
-	public Map<String, String> getLocation(@PathVariable Double lat, @PathVariable Double lon,
-			@PathVariable Double speed, @PathVariable long driver_id) {
-		Map<String, String> res = new HashMap<>();
+	public Map<String, Object> saveLocation(@PathVariable Double lat, @PathVariable Double lon,
+			@PathVariable Double speed, @PathVariable long driver_id,@PathVariable long tripId) {
+		Map<String, Object> res = new HashMap<>();
 
 		Location l = new Location();
 		l.setLat(lat);
@@ -71,6 +71,18 @@ public class GPS {
 						res.put("Success", "location are added");
 				}
 			}
+			DriverRestController drc=new DriverRestController();
+			Map<String,Double> p=drc.calculateBrakePenalty(truck.getPreviousSpeed(), truck.getCurrentSpeed(), tripId);
+			p=drc.calculateSpeedPenalty(tripId);
+			
+			if (p.containsKey("the driver rate is"))
+			{
+				res.put("rate: ", p.get("the driver rate is"));
+			}
+			else {
+				res.put("Error in rate", p.get("Error"));
+			}
+
 		}
 		return res;
 	}
