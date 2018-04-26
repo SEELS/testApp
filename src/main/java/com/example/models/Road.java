@@ -16,8 +16,16 @@ public class Road {
     @GeneratedValue(strategy = GenerationType.AUTO)
 	private long id;
 	
+
+	@Column(name = "name")
+	private String name;
+	
 	@Column(name = "state")
 	private double state;
+	
+	@Column(name = "deleted")
+	private boolean deleted;
+	
 	
 
 	public Road() {
@@ -47,5 +55,32 @@ public class Road {
 		this.state = state;
 	}
 
+	public long getId() {
+		return id;
+	}
 
+	public void setId(long id) {
+		this.id = id;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	
+
+	
+	
 }

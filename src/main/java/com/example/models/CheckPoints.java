@@ -1,6 +1,7 @@
 package com.example.models;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -36,6 +37,9 @@ public class CheckPoints {
 	@JoinColumn(name="location_id")
 	private Location location;
 
+	@Column(name = "deleted")
+	private boolean deleted;
+	
 	public CheckPoints() {
 		super();
 	}
@@ -87,6 +91,14 @@ public class CheckPoints {
 
 	public void setLocation(Location location) {
 		this.location = location;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
 	}
 	
 	

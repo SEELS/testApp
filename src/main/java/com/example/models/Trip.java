@@ -56,6 +56,10 @@ public class Trip {
 	
 	@Column(name = "parent")
 	private long parent;
+	
+	@Column(name = "deleted")
+	private boolean deleted;
+	
 	/*
 	 * to check if trip is complete or not or in process 0-> end , 1->not start , 2->in process  
 	 * */
@@ -182,6 +186,14 @@ public class Trip {
 
 	public void setState(int state) {
 		this.state = state;
+	}
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
 	}
 
 	

@@ -10,19 +10,15 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Repostitory.CheckPointsRepository;
-import com.example.Repostitory.DriverRepository;
 import com.example.Repostitory.GoodRepository;
 import com.example.Repostitory.LocationRepository;
 import com.example.Repostitory.RoadRepository;
 import com.example.Repostitory.TripRepository;
-import com.example.Repostitory.TruckRepository;
 import com.example.models.CheckPoints;
-import com.example.models.Driver;
 import com.example.models.Good;
 import com.example.models.Location;
 import com.example.models.Road;
 import com.example.models.Trip;
-import com.example.models.Truck;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -101,7 +97,12 @@ public class CheckPointsRestController {
 	@RequestMapping(value="/deleteAllCheckPoints",method=RequestMethod.GET)
 	public boolean deleteAllCheckPoints()
 	{
-		checkPointsRepository.deleteAll();
+		ArrayList<CheckPoints> checkPoints = checkPointsRepository.findByDeleted(false);
+		for (CheckPoints checkPoint : checkPoints) {
+			checkPoint.setDeleted(true);
+			checkPointsRepository.save(checkPoint);
+		}
+		
 		return true;
 	}
 	
@@ -115,8 +116,12 @@ public class CheckPointsRestController {
 		else
 		{
 			CheckPoints checkPoints=checkPointsRepository.findOne(checkPoint_id);
-			checkPointsRepository.delete(checkPoints);
-			return true;
+			if(checkPoints.isDeleted())
+				return false;
+			checkPoints.setDeleted(true);
+			if(checkPointsRepository.save(checkPoints)!=null)
+				return true;
 		}
+		return false;
 	}
 }
