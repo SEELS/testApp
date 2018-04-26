@@ -114,10 +114,65 @@ public class GPS {
 
 	}
 
-	@RequestMapping(value = "/getAllLocations", method = RequestMethod.GET)
-	public ArrayList<Location> getAllLocations() {
-		return (ArrayList<Location>) locationRepository.findAll();
-
+	@RequestMapping(value="/getAllLocations",method=RequestMethod.GET)
+	public ArrayList<Location> getAllLocations()
+	{
+		ArrayList<Location> locations=new ArrayList<Location>();
+		ArrayList<Location> AllLocations=(ArrayList<Location>)locationRepository.findAll();
+		for(int i=0;i<AllLocations.size();i++)
+		{
+			if(AllLocations.get(i).getDeleted()==false)
+			{
+				locations.add(AllLocations.get(i));
+			}
+		}
+		return locations;
 	}
-
+	
+	@RequestMapping(value="/getLocation/{location_id}",method=RequestMethod.GET)
+	public Location getLocation(@PathVariable long location_id)
+	{
+		if(locationRepository.findOne(location_id)==null)
+		{
+			return null;
+		}
+		Location location =locationRepository.findOne(location_id);
+		if(location.getDeleted()==true)
+		{
+			return null;
+		}
+		return location;
+	}
+	
+	@RequestMapping(value="/deleteAllLocations",method=RequestMethod.GET)
+	public boolean deleteAllLocations()
+	{
+		ArrayList<Location> locations= (ArrayList<Location>)locationRepository.findAll();
+		for(int i=0;i<locations.size();i++)
+		{
+			locations.get(i).setDeleted(true);
+			if(locationRepository.save(locations.get(i))==null)
+				return false;
+		}
+		return true;
+	}
+	
+	@RequestMapping(value="/deleteLocation/{Location_id}",method=RequestMethod.GET)
+	public boolean deleteLocation(@PathVariable long location_id)
+	{
+		if(locationRepository.findOne(location_id)==null)
+		{
+			return false;
+		}
+		else
+		{
+			Location location=locationRepository.findOne(location_id);
+			location.setDeleted(true);
+			if(locationRepository.save(location)!=null)
+				return true;
+		}
+		return false;
+	}
+	
+	
 }

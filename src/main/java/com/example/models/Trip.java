@@ -1,6 +1,7 @@
 package com.example.models;
 
 import java.util.Set;
+import java.util.Date;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -27,7 +28,7 @@ public class Trip {
 	private double rate;
 	
 	@Column(name = "date")
-	private String date;
+	private Date date;
 	
 	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
 	@JoinColumn(name="driver_id")
@@ -55,13 +56,18 @@ public class Trip {
 	
 	@Column(name = "parent")
 	private long parent;
+	/*
+	 * to check if trip is complete or not or in process 0-> end , 1->not start , 2->in process  
+	 * */
+	@Column(name = "state")
+	private int state;
 
 
 	public Trip() {
 		super();
 	}
 
-	public Trip(long trip_id, double rate, String date, Driver driver, Truck truck,
+	public Trip(long trip_id, double rate, Date date, Driver driver, Truck truck,
 			Set<Good> goods, Location source, Location destination, long parent,
 			Road road) {
 		super();
@@ -130,11 +136,11 @@ public class Trip {
 		this.rate = rate;
 	}
 
-	public String getDate() {
+	public Date getDate() {
 		return date;
 	}
 
-	public void setDate(String date) {
+	public void setDate(Date date) {
 		this.date = date;
 	}
 
@@ -168,6 +174,14 @@ public class Trip {
 
 	public void setGoods(Set<Good> goods) {
 		this.goods = goods;
+	}
+
+	public int getState() {
+		return state;
+	}
+
+	public void setState(int state) {
+		this.state = state;
 	}
 
 	

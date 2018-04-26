@@ -1,6 +1,12 @@
 package com.example.RestController;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,15 +60,6 @@ public class TripRestController {
 
 		Truck truck=truckRepository.findOne(truck_id);
 		Road road=roadRepository.findOne(road_id);
-//		
-//		if(parent_id==0)
-//		{
-//			parent=null;
-//		}
-//		else
-//		{
-//			parent=tripRepository.findOne(parent_id);
-//		}
 		Location source = new Location();
 		source.setLat(slat);
 		source.setLon(slon);
@@ -79,20 +76,32 @@ public class TripRestController {
 			{
 				Trip trip=new Trip();
 				trip.setRate(5.0);
-				trip.setDate(date);
-				trip.setDriver(driver);
-				trip.setDestination(destination);
-				trip.setSource(source);
-				trip.setParent(parent_id);
-				trip.setSource(source);
-				trip.setTruck(truck);
-				trip.setRoad(road);
-				if(tripRepository.save(trip)!=null)
-				{
-					res.put("Success", "location are added");
+				if(isValidDate(date)) {
+					DateFormat df = new SimpleDateFormat("dd-MM-yyyy"); 
+					Date startDate=null;
+					try {
+						startDate = df.parse(date);
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					trip.setDate(startDate);
+					trip.setDriver(driver);
+					trip.setDestination(destination);
+					trip.setSource(source);
+					trip.setParent(parent_id);
+					trip.setSource(source);
+					trip.setTruck(truck);
+					trip.setRoad(road);
+					if(tripRepository.save(trip)!=null)
+					{
+						res.put("Success", "location are added");
+					}
+					else
+						res.put("Error","Trip not save Database Error");
 				}
-				else
-					res.put("Error","Trip not save Database Error");
+					
+				
 			
 			}
 			else
@@ -143,9 +152,225 @@ public class TripRestController {
 		return roadLocation;
 	}
 	
+	
+	@RequestMapping(value = "/driverTrip/{driverId}", method = RequestMethod.GET)
+	public Map<String,Object> getDriverTrip(@PathVariable long driverId)
+	{
+		Map<String,Object> res = new HashMap<>();
+		Driver driver = driverRepository.findOne(driverId);
+		if(driver==null)
+		{
+			res.put("Error","There's no driver with that Id");
+		}
+		else
+		{
+			DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+	        Date date = new Date();
+	        System.out.println(dateFormat.format(date));
+	        ArrayList<Trip>trips = tripRepository.findByDriverAndDateGreaterThanEqual(driver,date); 
+	        if(trips==null)
+	        {
+	        	res.put("Error","There's no Trips to that Driver");
+	        }
+	        else
+	        {
+	        	res.put("Success", trips.get(0).getTrip_id());
+	        }
+		}
+		return res;
+	}
+	/* it gets an object of a specific truck, helping to get truck data */
+	@RequestMapping(value = "/SetDriverToTruck/{driver_id}/{Truck_id}", method = RequestMethod.GET)
+	public Map<String, String> SetDriverToTruck(@PathVariable String Truck_id, @PathVariable long driver_id) {
+		Map<String, String> res = new HashMap<>();
+		if(driver_id==0)
+		{
+			Truck truck = truckRepository.findOne(Truck_id);
+			if (truck == null) {
+				res.put("Error", "truck Not found");
+			} else {
+				truck.setDriver(null);
+				if (truckRepository.save(truck) != null)
+					res.put("Success", "Done !!");
+				else
+					res.put("Error", "Error Update in dataBase");
+			}
+		}
+		else
+		{
+			Driver driver = driverRepository.findOne(driver_id);
+			if (driver == null) {
+				res.put("Error", "Driver Not found");
+			} else {
+				Truck truck = truckRepository.findOne(Truck_id);
+				if (truck == null) {
+					res.put("Error", "truck Not found");
+				} else {
+					truck.setDriver(driver);
+					if (truckRepository.save(truck) != null)
+						res.put("Success", "Done !!");
+					else
+						res.put("Error", "Error Update in dataBase");
+				}
+			}
+		}
+		return res;
+	}
+
+	/* it gets an object of a specific truck, helping to get truck data */
+	@RequestMapping(value = "/changeTruckState/{state}/{Truck_id}", method = RequestMethod.GET)
+	public Map<String, String> changeTruckstate(@PathVariable String Truck_id, @PathVariable boolean state) {
+		Map<String, String> res = new HashMap<>();
+		Truck truck = truckRepository.findOne(Truck_id);
+		if (truck == null) {
+			res.put("Error", "Truck Not found");
+		} else {
+			truck.setActive(state);
+			if (truckRepository.save(truck) == null) {
+				res.put("Error", "Error in update in database !!");
+			} else
+				res.put("Success", "Done !!");
+		}
+		return res;
+	}
+
+	@RequestMapping(value = "/startTrip/{driverId}/{tripId}", method = RequestMethod.GET)
+	public Map<String,Object> startTrip(@PathVariable long driverId,@PathVariable long tripId)
+	{
+		Map<String,Object> res = new HashMap<>();
+		Driver driver = driverRepository.findOne(driverId);
+		if(driver==null)
+		{
+			res.put("Error","There's no driver with that Id");
+		}
+		else
+		{
+			Trip trip  = tripRepository.findOne(tripId);
+			if(trip==null)
+	        {
+	        	res.put("Error","There's no Trip to that Driver");
+	        }
+	        else
+	        {
+	        	Truck truck  = trip.getTruck();
+	        	Map<String, String> temp = SetDriverToTruck(truck.getId(),driverId);
+	        	if(temp.containsKey("Error"))
+	        		res.put("Error", temp.get("Error"));
+	        	else
+	        	{
+	        		temp =changeTruckstate(truck.getId(),true);
+	        		if(temp.containsKey("Error"))
+	        			res.put("Error",temp.get("Error"));
+	        		else
+	        		{
+	        			trip.setState(2);
+	        			// road ??
+	        		}
+	        	}
+	        	
+	        }
+		}
+		return res;
+	}
+	
+	@RequestMapping(value = "/endTrip/{driverId}/{tripId}", method = RequestMethod.GET)
+	public Map<String,Object> endTrip(@PathVariable long driverId,@PathVariable long tripId)
+	{
+		Map<String,Object> res = new HashMap<>();
+		Driver driver = driverRepository.findOne(driverId);
+		if(driver==null)
+		{
+			res.put("Error","There's no driver with that Id");
+		}
+		else
+		{
+			Trip trip  = tripRepository.findOne(tripId);
+			if(trip==null)
+	        {
+	        	res.put("Error","There's no Trip to that Driver");
+	        }
+	        else
+	        {
+	        	Truck truck  = trip.getTruck();
+	        	Map<String, String> temp = SetDriverToTruck(truck.getId(),0);
+	        	if(temp.containsKey("Error"))
+	        		res.put("Error", temp.get("Error"));
+	        	else
+	        	{
+	        		temp =changeTruckstate(truck.getId(),false);
+	        		if(temp.containsKey("Error"))
+	        			res.put("Error",temp.get("Error"));
+	        		else
+	        		{
+	        			trip.setState(0);
+	        		}
+	        	}
+	        	
+	        }
+		}
+		return res;
+	}
+	
+	
 	@RequestMapping(value="/getAllTrips",method=RequestMethod.GET)
 	public ArrayList<Trip> getAllTrips()
 	{
 		return (ArrayList<Trip>)tripRepository.findAll();
 	}
+	
+	@RequestMapping(value="/getTrip/{trip_id}",method=RequestMethod.GET)
+	public Trip getTrip(@PathVariable long trip_id)
+	{
+		if(tripRepository.findOne(trip_id)==null)
+		{
+			return null;
+		}
+		Trip trip =tripRepository.findOne(trip_id);
+		if(trip.getDeleted()==true)
+		{
+			return null;
+		}
+		return trip;
+	}
+	
+	@RequestMapping(value="/deleteAllTrips",method=RequestMethod.GET)
+	public boolean deleteAllTrips()
+	{
+		ArrayList<Trip> trips= (ArrayList<Trip>)tripRepository.findAll();
+		for(int i=0;i<trips.size();i++)
+		{
+			trips.get(i).setDeleted(true);
+			if(tripRepository.save(trips.get(i))==null)
+				return false;
+		}
+		return true;
+	}
+	
+	@RequestMapping(value="/deleteTrip/{trip_id}",method=RequestMethod.GET)
+	public boolean deleteTrip(@PathVariable long trip_id)
+	{
+		if(tripRepository.findOne(trip_id)==null)
+		{
+			return false;
+		}
+		else
+		{
+			Trip trip=tripRepository.findOne(trip_id);
+			trip.setDeleted(true);
+			if(tripRepository.save(trip)!=null)
+				return true;
+		}
+		return false;
+	}
+
+	public static boolean isValidDate(String inDate) {
+	        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+	        dateFormat.setLenient(false);
+	        try {
+	            dateFormat.parse(inDate.trim());
+	        } catch (ParseException pe) {
+	            return false;
+	        }
+	        return true;
+	    }
 }

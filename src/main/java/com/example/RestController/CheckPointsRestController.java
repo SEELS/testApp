@@ -22,6 +22,7 @@ import com.example.models.Good;
 import com.example.models.Location;
 import com.example.models.Road;
 import com.example.models.Trip;
+import com.example.models.Truck;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -83,5 +84,39 @@ public class CheckPointsRestController {
 	public ArrayList<CheckPoints> getAllCheckPoints()
 	{
 		return (ArrayList<CheckPoints>)checkPointsRepository.findAll();
+	
+	}
+	
+	@RequestMapping(value="/getCheckPoints/{checkPoint_id}",method=RequestMethod.GET)
+	public CheckPoints getCheckPoints(@PathVariable long checkPoint_id)
+	{
+		if(checkPointsRepository.findOne(checkPoint_id)==null)
+		{
+			return null;
+		}
+		CheckPoints checkPoints =checkPointsRepository.findOne(checkPoint_id);
+		return checkPoints;
+	}
+	
+	@RequestMapping(value="/deleteAllCheckPoints",method=RequestMethod.GET)
+	public boolean deleteAllCheckPoints()
+	{
+		checkPointsRepository.deleteAll();
+		return true;
+	}
+	
+	@RequestMapping(value="/deleteCheckPoints/{checkPoints_id}",method=RequestMethod.GET)
+	public boolean deleteCheckPoints(@PathVariable long checkPoint_id)
+	{
+		if(checkPointsRepository.findOne(checkPoint_id)==null)
+		{
+			return false;
+		}
+		else
+		{
+			CheckPoints checkPoints=checkPointsRepository.findOne(checkPoint_id);
+			checkPointsRepository.delete(checkPoints);
+			return true;
+		}
 	}
 }
