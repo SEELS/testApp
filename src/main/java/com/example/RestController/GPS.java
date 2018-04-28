@@ -16,9 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Repostitory.DriverRepository;
 import com.example.Repostitory.LocationRepository;
+import com.example.Repostitory.PenaltiesRepostitory;
+import com.example.Repostitory.TripRepository;
 import com.example.Repostitory.TruckRepository;
 import com.example.models.Driver;
 import com.example.models.Location;
+import com.example.models.Penalties;
+import com.example.models.Trip;
 import com.example.models.Truck;
 
 @RestController
@@ -34,6 +38,12 @@ public class GPS {
 
 	@Autowired
 	private DriverRepository driverRepository;
+	
+	@Autowired
+	private TripRepository tripRepository;
+	
+	@Autowired
+	private PenaltiesRepostitory penaltiesRepostitory;
 
 	/* saving location with a specific driver and speed */
 	// sara & sameh Edit 3/4/2018 1:20 Dr :Shawky
@@ -71,9 +81,8 @@ public class GPS {
 						res.put("Success", "location are added");
 				}
 			}
-			DriverRestController drc=new DriverRestController();
-			Map<String,Double> p=drc.calculateBrakePenalty(truck.getPreviousSpeed(), truck.getCurrentSpeed(), tripId);
-			p=drc.calculateSpeedPenalty(tripId);
+			Map<String,Double> p=calculateBrakePenalty(truck.getPreviousSpeed(), truck.getCurrentSpeed(), tripId);
+			p=calculateSpeedPenalty(tripId);
 			
 			if (p.containsKey("the driver rate is"))
 			{
@@ -173,6 +182,95 @@ public class GPS {
 		}
 		return false;
 	}
+	
+	/* calculate penalty during trip */
+	// Amina
+	public Map<String,Double> calculateSpeedPenalty(long tripId) {
+		double civilSpeed=90.0;
+		Trip t = tripRepository.findOne(tripId);
+		System.out.println("id="+t.getTruck().getId());
+		Truck truck=t.getTruck();
+		Location location = new Location();
+
+		location=locationRepository.findFirstByTruckOrderByIdDesc(truck);//trc.getCurrentLocation(truck.getId());
+		
+		
+	
+		Penalties p = new Penalties();
+		
+		location.setSpeed(70.0);
+		double diffrence = location.getSpeed() - civilSpeed;
+		double penalty = 0.0;
+		for (int i = 10; i <= diffrence; i += 10) {
+			penalty += 0.1;
+		}
+		p.setLocation(location);
+		p.setTrip(t);
+		p.setType("speed");
+		p.setValue(penalty);
+		penaltiesRepostitory.save(p);
+		Map<String,Double> res=new HashMap<>();
+		if(penaltiesRepostitory.findByTrip(t)!=null)
+			res.put("driver total rate is", rate(tripId)); 
+		else
+			res.put("Error",rate(tripId));
+		return res;
+	}
+
+	// Amina
+	public Map<String,Double> calculateBrakePenalty(double previousSpeed,double currentSpeed,long tripId) {
+		Trip trip = tripRepository.findOne(tripId);
+		Truck truck=trip.getTruck();
+		Location location = new Location();
+		location=locationRepository.findFirstByTruckOrderByIdDesc(truck);
+		double diffrence = Math.abs(previousSpeed - currentSpeed);
+
+		if (diffrence >= 50) {
+			Penalties p = new Penalties();
+			p.setLocation(location);
+			p.setTrip(trip);
+			p.setType("brake");
+			p.setValue(0.2);
+			penaltiesRepostitory.save(p);
+		
+		}
+		Map<String,Double> res=new HashMap<>();
+		
+		if(penaltiesRepostitory.findByTrip(trip)!=null)
+			res.put("driver total rate is", rate(tripId)); 
+		else
+			res.put("Error",rate(tripId));
+		return res;
+
+	}
+
+	public double rate(long tripId) {
+		Trip trip = tripRepository.findOne(tripId);
+		Driver driver = trip.getDriver();
+		double tripRate = 5.0;
+		ArrayList<Penalties> ps = penaltiesRepostitory.findByTrip(trip);
+		for (int i = 0; i < ps.size(); i++) {
+			
+			
+			tripRate -= ps.get(i).getValue();
+			
+		}
+
+		trip.setRate(tripRate);
+		tripRepository.save(trip);
+		ArrayList<Trip> driverTrips = tripRepository.findByDriver(driver);
+		double sum = 0.0;
+		for (int i = 0; i < driverTrips.size(); i++) {
+			sum += driverTrips.get(i).getRate();
+		}
+
+		double driverTotalRate = (double) sum / driverTrips.size();
+		driver.setRate(driverTotalRate);
+		driverRepository.save(driver);
+
+		return driverTotalRate;
+	}
+
 	
 	
 }
