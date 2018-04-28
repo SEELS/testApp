@@ -45,7 +45,6 @@ public class Trip {
 	@OneToMany(mappedBy="trip",cascade = CascadeType.ALL)
 	private Set<Good> goods ;
 	
-
 	@ManyToOne
 	@JoinColumn(name="source")
 	private Location source;

@@ -315,5 +315,24 @@ public class DriverRestController {
 		}
 		return res;
 	}
+	
+	@RequestMapping(value = "/updateDriver/{ssn}", method = RequestMethod.GET)
+	public Map<String, String> updateDriver(@PathVariable long driver_id) {
+		Map<String, String> res = new HashMap<>();
+		if (driverRepository.findOne(driver_id) == null) {
+			res.put("Error", "Wrong Driver Id");
+		} else {
+			Driver driver = driverRepository.findOne(driver_id);
+			if (driver.getDeleted()) {
+				res.put("Error", "Wrong Driver Id");
+			} else {
+				// to keep history of driver
+				driver.setDeleted(true);
+				if (driverRepository.save(driver) != null)
+					res.put("Success", "Driver Deleted!");
+			}
+		}
+		return res;
+	}
 
 }

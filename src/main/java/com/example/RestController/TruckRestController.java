@@ -392,5 +392,36 @@ public class TruckRestController {
 		double d = R * c;
 		return d; // return distance in meter
 	}
+	
+	
+	@RequestMapping(value = "/updateTruck/{truck_id}/{new_truck_id}", method = RequestMethod.GET)
+	public Map<String, String> updateTruck(@PathVariable String truck_id,@PathVariable String new_truck_id) {
+		Map<String, String> res = new HashMap<>();
+		Truck truck = truckRepository.findOne(truck_id);
+		if (truck == null) {
+			res.put("Error", "there's no Truck with That Id");
+		} else {
+			Truck truck_ = truckRepository.findOne(new_truck_id);
+			if(truck_==null)
+			{
+				if (truck.getDeleted()) {
+					res.put("Error", "there's no Truck with That Id");
+				} else {
+					truck.setId(new_truck_id);
+					if (truckRepository.save(truck) != null)
+						res.put("Success", "Truck are Updated");
+
+				}
+			}
+			else
+			{
+				res.put("Error", "This Truck Id in used");
+			}
+			
+		}
+		return res;
+	}
+	
+	
 
 }

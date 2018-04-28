@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Repostitory.CheckPointsRepository;
 import com.example.Repostitory.DriverRepository;
+import com.example.Repostitory.LocationRepository;
 import com.example.Repostitory.RoadRepository;
 import com.example.Repostitory.TripRepository;
 import com.example.Repostitory.TruckRepository;
@@ -36,7 +37,6 @@ public class TripRestController {
 	@Autowired
 	private CheckPointsRepository checkPointsRepository;
 
-
 	@Autowired
 	private RoadRepository roadRepository;
 
@@ -45,6 +45,9 @@ public class TripRestController {
 
 	@Autowired
 	private DriverRepository driverRepository;
+	
+	@Autowired
+	private LocationRepository locationRepository;
 
 	@RequestMapping(value = "/saveTrip/{truck_id}/{driver_id}/{parent_id}/{road_id}", method = RequestMethod.GET)
 	public Map<String, String> saveTrip(@PathVariable String truck_id, @PathVariable String date,
@@ -145,9 +148,8 @@ public class TripRestController {
 		return res;
 	}
 
-	/* it gets an object of a specific truck, helping to get truck data */
-	@RequestMapping(value = "/SetDriverToTruck/{driver_id}/{Truck_id}", method = RequestMethod.GET)
-	public Map<String, String> SetDriverToTruck(@PathVariable String Truck_id, @PathVariable long driver_id) {
+
+public Map<String, String> SetDriverToTruck(String Truck_id,long driver_id) {
 		Map<String, String> res = new HashMap<>();
 		if (driver_id == 0) {
 			Truck truck = truckRepository.findOne(Truck_id);
@@ -180,9 +182,7 @@ public class TripRestController {
 		return res;
 	}
 
-	/* it gets an object of a specific truck, helping to get truck data */
-	@RequestMapping(value = "/changeTruckState/{state}/{Truck_id}", method = RequestMethod.GET)
-	public Map<String, String> changeTruckstate(@PathVariable String Truck_id, @PathVariable boolean state) {
+	public Map<String, String> changeTruckstate(String Truck_id,boolean state) {
 		Map<String, String> res = new HashMap<>();
 		Truck truck = truckRepository.findOne(Truck_id);
 		if (truck == null) {
@@ -306,4 +306,30 @@ public class TripRestController {
 		}
 		return true;
 	}
+	
+	@RequestMapping(value = "/tripLocations/{trip_id}", method = RequestMethod.GET)
+	public Map<String,Object> TripLocations(@PathVariable long trip_id) {
+		Map<String,Object> res = new HashMap<>();
+		Trip trip = tripRepository.findOne(trip_id);
+		if (trip == null) {
+			res.put("Error", "Error Conection to Server");
+		} else {
+			ArrayList<Location> locations = locationRepository.findByTrip(trip);
+			if(locations==null)
+			{
+				res.put("Error", "There's No Locations to this Trip");
+			}
+			else if(locations.isEmpty())
+			{
+				res.put("Error", "There's No Locations to this Trip");
+			}
+			else
+			{
+				res.put("Success", locations);
+			}
+		}
+		return res;
+	}
+	
+	
 }
