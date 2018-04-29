@@ -12,7 +12,7 @@ import com.example.models.Truck;
 public interface TripRepository extends CrudRepository<Trip, Long> {
 
 	public ArrayList<Trip> findByDriver(Driver driver);
-	public Trip findFirstByTruckOrderByIdDescAndDeleted(Truck truck,boolean deleted);
+	public Trip findFirstByTruckOrderByIdDesc(Truck truck);
 	public ArrayList<Trip> findByDriverAndDeletedAndDateGreaterThanEqual(Driver driver,boolean deleted,Date date);
 
 }
