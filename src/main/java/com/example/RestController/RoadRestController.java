@@ -155,7 +155,7 @@ public class RoadRestController {
 		return locations;
 	}
 	
-	@RequestMapping(value = "/saveRoad/{name}/{dlat}/{dlon}/{slat}/{slon}", method = RequestMethod.GET)
+	@RequestMapping(value = "/saveRoad/{name}/{dlat}/{dlon}/{slat}/{slon}/{state}", method = RequestMethod.GET)
 	public Map<String, Object> saveRoadObject(@PathVariable double state,@PathVariable String name,@PathVariable double dlat,@PathVariable double dlon,@PathVariable double slat,@PathVariable double slon)
 	{
 		Map<String,Object> res = new HashMap<>();
