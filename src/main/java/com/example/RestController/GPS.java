@@ -47,7 +47,7 @@ public class GPS {
 
 	/* saving location with a specific driver and speed */
 	// sara & sameh Edit 3/4/2018 1:20 Dr :Shawky
-	@RequestMapping(value = "/{lat}/{lon}/{speed}/{driver_id}/saveLocation", method = RequestMethod.GET)
+	@RequestMapping(value = "/{lat}/{lon}/{speed}/{driver_id}/{tripId}/saveLocation", method = RequestMethod.GET)
 	public Map<String, Object> saveLocation(@PathVariable Double lat, @PathVariable Double lon,
 			@PathVariable Double speed, @PathVariable long driver_id,@PathVariable long tripId) {
 		Map<String, Object> res = new HashMap<>();

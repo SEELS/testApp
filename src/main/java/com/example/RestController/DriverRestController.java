@@ -334,5 +334,48 @@ public class DriverRestController {
 		}
 		return res;
 	}
+	
+	@RequestMapping(value = "/updateDriver/{driver_id}/{name}/{ssn}/{logged}/{token}/{password}/{deleted}", method = RequestMethod.GET)
+	public boolean updateDriver(@PathVariable long driver_id,@PathVariable String name,@PathVariable String ssn
+			,@PathVariable int logged,@PathVariable String token,@PathVariable String password
+			,@PathVariable int deleted)
+	{
+		if(driverRepository.findOne(driver_id)==null)
+		{
+			return false;
+		}
+		Driver driver =driverRepository.findOne(driver_id);
+		boolean flag;
+		if(logged==1)
+		{
+			flag=true;
+			driver.setLogged(flag);
+		}
+		else if(logged==0)
+		{
+			flag=false;
+			driver.setLogged(flag);
+		}
+		if(deleted==1)
+		{
+			flag=true;
+			driver.setDeleted(flag);
+		}
+		else if(deleted==0)
+		{
+			flag=false;
+			driver.setDeleted(flag);
+		}
+		driver.setName(name);
+		driver.setPassword(password);
+		driver.setPassword(password);
+		driver.setToken(token);
+		driver.setSsn(ssn);
+		if(driverRepository.save(driver)!=null)
+		{
+			return true;
+		}
+		return false;
+	}
 
 }
