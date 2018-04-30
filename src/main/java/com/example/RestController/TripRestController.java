@@ -171,7 +171,10 @@ public class TripRestController {
 						if(trip.getState()==1 )
 						{
 							trip.setState(2);
-							res.put("Success", "Your trip in process now");
+							if(tripRepository.save(trip)!=null)
+								res.put("Success", "Your trip in process now");
+							else
+								res.put("Error", "Error Conection to Server");
 						}
 						else
 							res.put("Error", "this trip are completed ");
@@ -204,7 +207,10 @@ public class TripRestController {
 						res.put("Error", temp.get("Error"));
 					else {
 						trip.setState(0);
-						res.put("Success", "Done!!");
+						if(tripRepository.save(trip)!=null)
+							res.put("Success", "Done!!");
+						else
+							res.put("Error", "Error Conection to Server");
 					}
 				}
 
