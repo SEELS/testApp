@@ -66,6 +66,8 @@ public class GPS {
 				res.put("Error", "Driver Truck Not  found !!");
 			} else {
 				l.setTruck(truck);
+				Trip trip = tripRepository.findOne(tripId);
+				l.setTrip(trip);
 				if(locationRepository.save(l)==null)
 				{
 					res.put("Error","Location not save Database Error");
