@@ -14,5 +14,6 @@ public interface TripRepository extends CrudRepository<Trip, Long> {
 	public ArrayList<Trip> findByDriver(Driver driver);
 	public Trip findFirstByTruckOrderByIdDesc(Truck truck);
 	public ArrayList<Trip> findByDriverAndDeletedAndDateGreaterThanEqual(Driver driver,boolean deleted,Date date);
+	public ArrayList<Trip> findByDeleted(boolean deleted);
 
 }

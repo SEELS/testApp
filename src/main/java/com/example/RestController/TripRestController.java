@@ -75,6 +75,7 @@ public class TripRestController {
 					trip.setParent(parent_id);
 					trip.setTruck(truck);
 					trip.setRoad(road);
+					trip.setState(1);
 					if (tripRepository.save(trip) != null) {
 						res.put("Success", "Trip are added");
 					} else
@@ -214,7 +215,7 @@ public class TripRestController {
 
 	@RequestMapping(value = "/getAllTrips", method = RequestMethod.GET)
 	public ArrayList<Trip> getAllTrips() {
-		return (ArrayList<Trip>) tripRepository.findAll();
+		return (ArrayList<Trip>) tripRepository.findByDeleted(false);
 	}
 
 	@RequestMapping(value = "/getTrip/{trip_id}", method = RequestMethod.GET)
