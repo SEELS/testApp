@@ -48,7 +48,6 @@ public class Location {
 	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
 	@JoinColumn(name="road_id")
 	private Road road;
-	
 	// time stamps
 	
 	public Location() {

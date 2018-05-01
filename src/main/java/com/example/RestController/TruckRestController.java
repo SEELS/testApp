@@ -296,6 +296,7 @@ public class TruckRestController {
 //		return res;
 //	}
 
+
 	// Modified by Randa
 	@RequestMapping(value = "/{truckId}/getTruckTrip", method = RequestMethod.GET)
 	public Map<String, String> getTruckTrip(@PathVariable String truckId) {

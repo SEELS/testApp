@@ -17,6 +17,7 @@ import com.example.models.Location;
 import com.example.models.Road;
 
 
+
 @RestController
 @CrossOrigin(origins = "*")
 public class RoadRestController {
@@ -63,6 +64,8 @@ public class RoadRestController {
 		}
 		return res;
 	}
+
+
 	
 	@RequestMapping(value = "/getRoad/{road_id}", method = RequestMethod.GET)
 	public Map<String, Object> getRoad(@PathVariable long road_id) 
@@ -75,7 +78,7 @@ public class RoadRestController {
 		}
 		else
 		{
-			ArrayList<Location> roadLocations = (ArrayList<Location>)locationRepository.findAll();
+			ArrayList<Location> roadLocations = locationRepository.findByRoad(road);
 			if(roadLocations ==null)
 			{
 				res.put("Error", "there's no Location in this road");
@@ -86,32 +89,20 @@ public class RoadRestController {
 			}
 			else
 			{
-				ArrayList<Location> locations = new ArrayList<>();
-				for (int i = 0; i < roadLocations.size(); i++) {
-					if(roadLocations.get(i).getRoad()==road)
-					locations.add(roadLocations.get(i));
-				}
-				res.put("Success",locations);
+				res.put("Success",roadLocations);
 			}
 		}
 		return res;
+
 	}
 	
 	
 	@RequestMapping(value="/getAllRoads",method=RequestMethod.GET)
 	public ArrayList<Location> getAllRoads()
-	{
-		ArrayList<Location> allRoadLocations=(ArrayList<Location>)locationRepository.findAll();
-		ArrayList<Location> roadsLocarions=new ArrayList<Location>();
-		for(int i=0;i<allRoadLocations.size();i++)
-		{
-			if(allRoadLocations.get(i).getRoad()!=null)
-			{
-				roadsLocarions.add(allRoadLocations.get(i));
-			}
-		}
-		return roadsLocarions;
+	{		
+		return locationRepository.findByRoadIsNotNull();
 	}
+
 
 
 	@RequestMapping(value="/deleteAllRoads",method=RequestMethod.GET)

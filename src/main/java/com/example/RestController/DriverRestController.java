@@ -50,7 +50,6 @@ public class DriverRestController {
 				driver_.setLogged(false);
 				driver_.setRate(5.0);
 				if (driverRepository.save(driver_) != null)
-
 					res.put("Success", driver_.getDriver_id()+"");
 				else
 				res.put("Error", "error in connection to Server");
@@ -117,17 +116,6 @@ public class DriverRestController {
 			}
 
 			for (Driver driver : nearestDriver) {
-				/*
-				 * Query are more effective in time this service call more than 4 time in 1
-				 * minute
-				 * 
-				 * ArrayList<Location>
-				 * allLocations=(ArrayList<Location>)locationRepository.findAll();
-				 * ArrayList<Location> firstDriverLocations=new ArrayList<Location>(); for(int
-				 * i=0;i<allLocations.size();i++) { if(allLocations.get(i).getDriver()==driver)
-				 * { firstDriverLocations.add(allLocations.get(i)); } } Location
-				 * driverLocation=firstDriverLocations.get(firstDriverLocations.size()-1);
-				 */
 				Location driverLocation = locationRepository.findFirstByDriverOrderByIdDesc(driver);
 				nearestDriverLocation.add(driverLocation);
 			}
@@ -317,6 +305,7 @@ public class DriverRestController {
 	}
 
 	/* if the manager wants to save a driver from the web site */
+
 	
 	@RequestMapping(value = "/updateDriver/{ssn}", method = RequestMethod.GET)
 	public Map<String, String> updateDriver(@PathVariable long driver_id) {

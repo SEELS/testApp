@@ -17,13 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.Repostitory.DriverRepository;
 import com.example.Repostitory.LocationRepository;
 import com.example.Repostitory.PenaltiesRepostitory;
-import com.example.Repostitory.RoadRepository;
 import com.example.Repostitory.TripRepository;
 import com.example.Repostitory.TruckRepository;
 import com.example.models.Driver;
 import com.example.models.Location;
 import com.example.models.Penalties;
-import com.example.models.Road;
 import com.example.models.Trip;
 import com.example.models.Truck;
 
@@ -41,8 +39,6 @@ public class GPS {
 	@Autowired
 	private DriverRepository driverRepository;
 	
-	@Autowired
-	private RoadRepository roadRepository;
 	
 	
 	@Autowired
@@ -55,21 +51,21 @@ public class GPS {
 	/* saving location with a specific driver and speed */
 	// sara & sameh Edit 3/4/2018 1:20 Dr :Shawky
 	//modified by Mariam
-	@RequestMapping(value = "/{lat}/{lon}/{speed}/{driver_id}/{tripId}/{road_id}/saveLocation", method = RequestMethod.GET)
-	public Map<String, Object> saveLocation(@PathVariable Double lat, @PathVariable Double lon,
-			@PathVariable Double speed, @PathVariable long driver_id,@PathVariable long tripId,@PathVariable long road_id) {
-		Map<String, Object> res = new HashMap<>();
+	//modified by sameh
 
+	@RequestMapping(value = "/{lat}/{lon}/{speed}/{driver_id}/{tripId}/saveLocation", method = RequestMethod.GET)
+	public Map<String, Object> saveLocation(@PathVariable Double lat, @PathVariable Double lon,
+			@PathVariable Double speed, @PathVariable long driver_id,@PathVariable long tripId) {
+		Map<String, Object> res = new HashMap<>();
 		Location l = new Location();
 		l.setLat(lat);
 		l.setLon(lon);
 		l.setSpeed(speed);
 		Trip trip=tripRepository.findOne(tripId);
 		l.setTrip(trip);
-		if(road_id!=0)
+		if(locationRepository.findByRoad(trip.getRoad()).size()<=2)
 		{
-			Road road=roadRepository.findOne(road_id);
-			l.setRoad(road);
+			l.setRoad(trip.getRoad());
 		}
 		else
 		{
@@ -79,13 +75,11 @@ public class GPS {
 		if (driver == null) {
 			res.put("Error", "Driver Not found");
 		} else {
-
 			l.setDriver(driver);
 			Truck truck = truckRepository.findByDriver(driver);
 			if (truck == null) {
 				res.put("Error", "Driver Truck Not  found !!");
 			} else {
-
 				l.setTruck(truck);
 				if(locationRepository.save(l)==null)
 				{
@@ -106,7 +100,7 @@ public class GPS {
 			p=calculateSpeedPenalty(tripId);
 			if (p.containsKey("driver total rate is"))
 			{
-				res.put("rate: ", p.get("the driver rate is"));
+				res.put("rate: ", p.get("driver total rate is"));
 			}
 			else {
 				res.put("Error in rate", p.get("Error"));

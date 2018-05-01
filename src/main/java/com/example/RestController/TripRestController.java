@@ -20,6 +20,7 @@ import com.example.Repostitory.LocationRepository;
 import com.example.Repostitory.RoadRepository;
 import com.example.Repostitory.TripRepository;
 import com.example.Repostitory.TruckRepository;
+
 import com.example.models.Driver;
 import com.example.models.Location;
 import com.example.models.Road;
@@ -45,6 +46,7 @@ public class TripRestController {
 	private LocationRepository locationRepository;
 
 	//Modified by Mariam 
+	//Modified By Sameh
 	@RequestMapping(value = "/saveTrip/{truck_id}/{driver_id}/{parent_id}/{road_id}/{date}", method = RequestMethod.GET)
 	public Map<String, String> saveTrip(@PathVariable String truck_id, @PathVariable String date,
 			@PathVariable long driver_id, @PathVariable long parent_id, @PathVariable long road_id) {
@@ -57,15 +59,7 @@ public class TripRestController {
 			if (road == null) {
 				res.put("Error", "there's No Road with that Id");
 			} else {
-				ArrayList<Location> RLocations = (ArrayList<Location>)locationRepository.findAll();
-				ArrayList<Location> roadLocations=new ArrayList<Location>();
-				for(int i=0;i<RLocations.size();i++)
-				{
-					if(RLocations.get(i).getRoad()==road)
-					{
-						roadLocations.add(RLocations.get(i));
-					}
-				}
+				ArrayList<Location> roadLocations=locationRepository.findByRoad(road);
 				Driver driver = driverRepository.findOne(driver_id);
 				if (driver != null) {
 					Date date_ = getDate(date);
@@ -93,21 +87,15 @@ public class TripRestController {
 
 		return res;
 	}
-	
+	//Modified by Sameh
 	@RequestMapping(value = "/returnTrip/{trip_id}", method = RequestMethod.GET)
 	public ArrayList<Location> saveTripRoad(@PathVariable long trip_id) {
 		Trip trip = tripRepository.findOne(trip_id);
 		Road road=trip.getRoad();
-		ArrayList<Location> locations=(ArrayList<Location>)locationRepository.findAll();
-		ArrayList<Location> tripLocations =new ArrayList<Location>();
-		for(int i=0;i<locations.size();i++)
-		{
-			if(locations.get(i).getRoad()==road)
-			{
-				tripLocations.add(locations.get(i));
-			}
-		}
-		return tripLocations;
+		if(locationRepository.findByRoad(road).size()>2)
+			return locationRepository.findByRoad(road);
+		else
+			return new ArrayList<>();
 	}
 
 	@RequestMapping(value = "/driverTrip/{driverId}", method = RequestMethod.GET)
@@ -160,7 +148,10 @@ public class TripRestController {
 						if(trip.getState()==1 )
 						{
 							trip.setState(2);
-							res.put("Success", "Your trip in process now");
+							if(tripRepository.save(trip)!=null)
+								res.put("Success", "Your trip in process now");
+							else
+								res.put("Error", "Error Conection to Server");
 						}
 						else
 							res.put("Error", "this trip are completed ");
@@ -193,7 +184,10 @@ public class TripRestController {
 						res.put("Error", temp.get("Error"));
 					else {
 						trip.setState(0);
-						res.put("Success", "Done!!");
+						if(tripRepository.save(trip)!=null)
+							res.put("Success", "Done!!");
+						else
+							res.put("Error", "Error Conection to Server");
 					}
 				}
 
