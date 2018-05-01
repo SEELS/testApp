@@ -160,9 +160,9 @@ public class DriverRestController {
 		penaltiesRepostitory.save(p);
 		Map<String,Double> res=new HashMap<>();
 		if(penaltiesRepostitory.findByTrip(t)!=null)
-			res.put("driver total rate is", rate(tripId)); 
+			res.put("driver total rate is", tripRate(tripId)); 
 		else
-			res.put("Error",rate(tripId));
+			res.put("Error",tripRate(tripId));
 		return res;
 	}
 
@@ -187,19 +187,18 @@ public class DriverRestController {
 		Map<String,Double> res=new HashMap<>();
 		
 		if(penaltiesRepostitory.findByTrip(trip)!=null)
-			res.put("driver total rate is", rate(tripId)); 
+			res.put("driver total rate is", tripRate(tripId)); 
 		else
-			res.put("Error",rate(tripId));
+			res.put("Error",tripRate(tripId));
 		return res;
 
 	}
 
 	// get penalty, update driver rate and set tripRate
 	/* by amina */
-	@RequestMapping(value = "/rate/{tripId}", method = RequestMethod.GET)
-	public double rate(@PathVariable long tripId) {
+	@RequestMapping(value = "/tripRate/{tripId}", method = RequestMethod.GET)
+	public double tripRate(@PathVariable long tripId) {
 		Trip trip = tripRepository.findOne(tripId);
-		Driver driver = trip.getDriver();
 		double tripRate = 5.0;
 		ArrayList<Penalties> ps = penaltiesRepostitory.findByTrip(trip);
 		for (int i = 0; i < ps.size(); i++) {
@@ -211,6 +210,18 @@ public class DriverRestController {
 
 		trip.setRate(tripRate);
 		tripRepository.save(trip);
+		
+
+
+		return tripRate;
+	}
+	//calculating driver total rate by Amina 
+	@RequestMapping(value="/driverRate/{tripId}",method=RequestMethod.GET)
+	public double driverRate (@PathVariable long tripId)
+	{
+		Trip trip = tripRepository.findOne(tripId);
+		Driver driver = trip.getDriver();
+		
 		ArrayList<Trip> driverTrips = tripRepository.findByDriver(driver);
 		double sum = 0.0;
 		for (int i = 0; i < driverTrips.size(); i++) {
@@ -220,10 +231,10 @@ public class DriverRestController {
 		double driverTotalRate = (double) sum / driverTrips.size();
 		driver.setRate(driverTotalRate);
 		driverRepository.save(driver);
-
+		
 		return driverTotalRate;
 	}
-
+	
 	@RequestMapping(value = "/getAllDrivers", method = RequestMethod.GET)
 	public ArrayList<Driver> getAllDrivers() {
 		return driverRepository.findByDeleted(false);
