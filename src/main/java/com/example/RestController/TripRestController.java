@@ -105,7 +105,7 @@ public class TripRestController {
 		if (driver == null) {
 			res.put("Error", "There's no driver with that Id");
 		} else {
-			DateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
+			DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
 			Date date = new Date();
 			String temp =dateFormat.format(date);
 			Date mydate = getDate(temp);
@@ -262,7 +262,7 @@ public class TripRestController {
 	}
 	
 	public static boolean isValidDate(String inDate) {
-		SimpleDateFormat dateFormat = new SimpleDateFormat("MM-dd-yyyy");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
 		dateFormat.setLenient(false);
 		try {
 			dateFormat.parse(inDate.trim());
@@ -276,7 +276,7 @@ public class TripRestController {
 	{
 		if(isValidDate(date))
 		{
-			DateFormat df = new SimpleDateFormat("MM-dd-yyyy");
+			DateFormat df = new SimpleDateFormat("yyyy-mm-dd");
 			Date Date = null;
 			try {
 				Date = df.parse(date);
