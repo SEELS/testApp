@@ -15,13 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.Repostitory.CheckPointsRepository;
 import com.example.Repostitory.DriverRepository;
 import com.example.Repostitory.LocationRepository;
 import com.example.Repostitory.RoadRepository;
 import com.example.Repostitory.TripRepository;
 import com.example.Repostitory.TruckRepository;
-import com.example.models.CheckPoints;
+
 import com.example.models.Driver;
 import com.example.models.Location;
 import com.example.models.Road;
@@ -35,9 +34,6 @@ public class TripRestController {
 	private TripRepository tripRepository;
 
 	@Autowired
-	private CheckPointsRepository checkPointsRepository;
-
-	@Autowired
 	private RoadRepository roadRepository;
 
 	@Autowired
@@ -49,11 +45,12 @@ public class TripRestController {
 	@Autowired
 	private LocationRepository locationRepository;
 
+	//Modified by Mariam 
+	//Modified By Sameh
 	@RequestMapping(value = "/saveTrip/{truck_id}/{driver_id}/{parent_id}/{road_id}/{date}", method = RequestMethod.GET)
 	public Map<String, String> saveTrip(@PathVariable String truck_id, @PathVariable String date,
 			@PathVariable long driver_id, @PathVariable long parent_id, @PathVariable long road_id) {
 		Map<String, String> res = new HashMap<>();
-
 		Truck truck = truckRepository.findOne(truck_id);
 		Road road = roadRepository.findOne(road_id);
 		if (truck == null) {
@@ -62,7 +59,7 @@ public class TripRestController {
 			if (road == null) {
 				res.put("Error", "there's No Road with that Id");
 			} else {
-				ArrayList<CheckPoints> checkPoints = checkPointsRepository.findByRoad(road);
+				ArrayList<Location> roadLocations=locationRepository.findByRoad(road);
 				Driver driver = driverRepository.findOne(driver_id);
 				if (driver != null) {
 					Date date_ = getDate(date);
@@ -70,8 +67,8 @@ public class TripRestController {
 					trip.setRate(5.0);
 					trip.setDate(date_);
 					trip.setDriver(driver);
-					trip.setDestination(checkPoints.get(1).getLocation());
-					trip.setSource(checkPoints.get(0).getLocation());
+					trip.setDestination(roadLocations.get(1));
+					trip.setSource(roadLocations.get(0));
 					trip.setParent(parent_id);
 					trip.setTruck(truck);
 					trip.setRoad(road);
@@ -90,35 +87,15 @@ public class TripRestController {
 
 		return res;
 	}
-
-	@RequestMapping(value = "/returnTrip/{driver_id}", method = RequestMethod.GET)
-	public ArrayList<Location> saveTripRoad(@PathVariable long driver_id) {
-		Driver driver = driverRepository.findOne(driver_id);
-		ArrayList<Trip> allTrips = (ArrayList<Trip>) tripRepository.findAll();
-		Trip trip = new Trip();
-		for (int i = 0; i < allTrips.size(); i++) {
-			if (allTrips.get(i).getDriver() == driver) {
-				trip = allTrips.get(i);
-			}
-		}
-		long road_id = trip.getRoad().getRoad_id();
-		Road road = roadRepository.findOne(road_id);
-		ArrayList<CheckPoints> locations = new ArrayList<CheckPoints>();
-		ArrayList<CheckPoints> checkPoints = (ArrayList<CheckPoints>) checkPointsRepository.findAll();
-		for (int i = 0; i < checkPoints.size(); i++) {
-			if (checkPoints.get(i).getRoad() == road) {
-				locations.add(checkPoints.get(i));
-			}
-		}
-
-		ArrayList<Location> roadLocation = new ArrayList<Location>();
-		for (int i = 0; i < locations.size(); i++) {
-			if (locations.get(i).getTrip() == trip) {
-				roadLocation.add(locations.get(i).getLocation());
-			}
-		}
-
-		return roadLocation;
+	//Modified by Sameh
+	@RequestMapping(value = "/returnTrip/{trip_id}", method = RequestMethod.GET)
+	public ArrayList<Location> saveTripRoad(@PathVariable long trip_id) {
+		Trip trip = tripRepository.findOne(trip_id);
+		Road road=trip.getRoad();
+		if(locationRepository.findByRoad(road).size()>2)
+			return locationRepository.findByRoad(road);
+		else
+			return new ArrayList<>();
 	}
 
 	@RequestMapping(value = "/driverTrip/{driverId}", method = RequestMethod.GET)

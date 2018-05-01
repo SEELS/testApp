@@ -39,23 +39,38 @@ public class GPS {
 	@Autowired
 	private DriverRepository driverRepository;
 	
+	
+	
 	@Autowired
 	private TripRepository tripRepository;
+
 	
 	@Autowired
 	private PenaltiesRepostitory penaltiesRepostitory;
 
 	/* saving location with a specific driver and speed */
 	// sara & sameh Edit 3/4/2018 1:20 Dr :Shawky
+	//modified by Mariam
+	//modified by sameh
+
 	@RequestMapping(value = "/{lat}/{lon}/{speed}/{driver_id}/{tripId}/saveLocation", method = RequestMethod.GET)
 	public Map<String, Object> saveLocation(@PathVariable Double lat, @PathVariable Double lon,
 			@PathVariable Double speed, @PathVariable long driver_id,@PathVariable long tripId) {
 		Map<String, Object> res = new HashMap<>();
-
 		Location l = new Location();
 		l.setLat(lat);
 		l.setLon(lon);
 		l.setSpeed(speed);
+		Trip trip=tripRepository.findOne(tripId);
+		l.setTrip(trip);
+		if(locationRepository.findByRoad(trip.getRoad()).size()<=2)
+		{
+			l.setRoad(trip.getRoad());
+		}
+		else
+		{
+			l.setRoad(null);
+		}
 		Driver driver = driverRepository.findOne(driver_id);
 		if (driver == null) {
 			res.put("Error", "Driver Not found");
@@ -66,8 +81,6 @@ public class GPS {
 				res.put("Error", "Driver Truck Not  found !!");
 			} else {
 				l.setTruck(truck);
-				Trip trip = tripRepository.findOne(tripId);
-				l.setTrip(trip);
 				if(locationRepository.save(l)==null)
 				{
 					res.put("Error","Location not save Database Error");
@@ -75,7 +88,7 @@ public class GPS {
 				else {
 					truck.setPreviousSpeed(truck.getCurrentSpeed());
 					truck.setCurrentSpeed(speed);
-					if(truckRepository.save(truck) != null)
+					if(truckRepository.save(truck) == null)
 					{
 						res.put("Error","Location not save Database Error");
 					}
@@ -85,10 +98,9 @@ public class GPS {
 			}
 			Map<String,Double> p=calculateBrakePenalty(truck.getPreviousSpeed(), truck.getCurrentSpeed(), tripId);
 			p=calculateSpeedPenalty(tripId);
-			
-			if (p.containsKey("the driver rate is"))
+			if (p.containsKey("driver total rate is"))
 			{
-				res.put("rate: ", p.get("the driver rate is"));
+				res.put("rate: ", p.get("driver total rate is"));
 			}
 			else {
 				res.put("Error in rate", p.get("Error"));
@@ -190,16 +202,10 @@ public class GPS {
 	public Map<String,Double> calculateSpeedPenalty(long tripId) {
 		double civilSpeed=90.0;
 		Trip t = tripRepository.findOne(tripId);
-		System.out.println("id="+t.getTruck().getId());
 		Truck truck=t.getTruck();
 		Location location = new Location();
-
 		location=locationRepository.findFirstByTruckOrderByIdDesc(truck);//trc.getCurrentLocation(truck.getId());
-		
-		
-	
 		Penalties p = new Penalties();
-		
 		location.setSpeed(70.0);
 		double diffrence = location.getSpeed() - civilSpeed;
 		double penalty = 0.0;

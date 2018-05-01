@@ -45,6 +45,9 @@ public class Location {
 	@JoinColumn(name="trip_id")
 	private Trip trip;
 	
+	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
+	@JoinColumn(name="road_id")
+	private Road road;
 	// time stamps
 	
 	public Location() {
@@ -120,6 +123,14 @@ public class Location {
 
 	public void setTrip(Trip trip) {
 		this.trip = trip;
+	}
+	
+	public Road getRoad() {
+		return road;
+	}
+
+	public void setRoad(Road road) {
+		this.road = road;
 	}
 	
 	

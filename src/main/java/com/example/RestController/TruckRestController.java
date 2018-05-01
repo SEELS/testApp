@@ -11,14 +11,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.example.Repostitory.CheckPointsRepository;
 import com.example.Repostitory.DriverRepository;
 import com.example.Repostitory.LocationRepository;
 import com.example.Repostitory.TripRepository;
 import com.example.Repostitory.TruckRepository;
 import com.example.models.Truck;
-import com.example.models.CheckPoints;
 import com.example.models.Driver;
 import com.example.models.Location;
 import com.example.models.Trip;
@@ -35,9 +32,6 @@ public class TruckRestController {
 
 	@Autowired
 	private DriverRepository driverRepository;
-
-	@Autowired
-	private CheckPointsRepository checkPointsRepository;
 
 	@Autowired
 	private TripRepository tripRepository;
@@ -111,15 +105,11 @@ public class TruckRestController {
 		return res;
 	}
 
-	/* it gets the current location of truck to draw a marker on the map */
+	/* it gets the actual current location of truck to draw a marker on the map */
 	@RequestMapping(value = "/viewTruckLocation/{truck_id}", method = RequestMethod.GET)
 	public Map<String, Object> getCurrentLocation(@PathVariable String truck_id) {
 		Map<String, Object> res = new HashMap<>();
-		System.out.println("in fun");
-		System.err.println("tr"+truck_id);
-
 		Truck truck = truckRepository.findById(truck_id);
-		System.err.println("tr"+truck_id);
 		if (truck == null)
 			res.put("Error","there's no truck with that Id");
 		else {
@@ -128,40 +118,41 @@ public class TruckRestController {
 		return res;
 	}
 
-	// /* it gets the current location of truck to draw a marker on the map */
-	// @RequestMapping(value = "/viewTruckLocation/{truck_id}", method =
-	// RequestMethod.GET)
-	// public Location getCurrentLocation(@PathVariable String truck_id) {
-	// ArrayList<Location> locations = (ArrayList<Location>)
-	// locationRepository.findAll();
-	// Truck truck = truckRepository.findOne(truck_id);
-	// ArrayList<Location> truckLocations = new ArrayList<Location>();
-	// for (int i = 0; i < locations.size(); i++) {
-	// if (locations.get(i).getTruck() == truck) {
-	// truckLocations.add(locations.get(i));
-	// }
-	// }
-	// return truckLocations.get(truckLocations.size() - 1);
-	// }
-
-	/* it gets all locations of a truck, helping to get check points */
-	@RequestMapping(value = "/viewTruckLocations/{id}/{trip_id}", method = RequestMethod.GET)
-	public ArrayList<Location> getLocations(@PathVariable String id, @PathVariable long trip_id) {
-		ArrayList<CheckPoints> checkPoint = (ArrayList<CheckPoints>) checkPointsRepository.findAll();
-		ArrayList<CheckPoints> checkPoints = new ArrayList<CheckPoints>();
+	/* it gets all actual locations of a trip*/
+	@RequestMapping(value = "/viewTripLocations/{trip_id}", method = RequestMethod.GET)
+	public ArrayList<Location> viewTripLocations(@PathVariable long trip_id) {
+		
 		Trip trip = tripRepository.findOne(trip_id);
-		for (int i = 0; i < checkPoint.size(); i++) {
-			if (checkPoint.get(i).getTrip() == trip) {
-				checkPoints.add(checkPoint.get(i));
+		ArrayList<Location> locations=(ArrayList<Location>)locationRepository.findAll();
+		ArrayList<Location> truckLocations = new ArrayList<Location>();
+		for (int i = 0; i < locations.size(); i++) {
+			if (locations.get(i).getTrip() == trip) {
+				truckLocations.add(locations.get(i));
 			}
 		}
-		ArrayList<Location> locations = new ArrayList<Location>();
-		for (int i = 0; i < checkPoints.size(); i++) {
-			locations.add(checkPoints.get(i).getLocation());
-		}
-		return locations;
+		return truckLocations;
 	}
-
+	/* it gets all actual locations of a truck*/
+	@RequestMapping(value = "/viewTruckLocations/{truck_id}", method = RequestMethod.GET)
+	public ArrayList<Location> viewTripLocations(@PathVariable String truck_id) {
+		Truck truck = truckRepository.findOne(truck_id);
+		ArrayList<Trip> allTrips=(ArrayList<Trip>)tripRepository.findAll();
+		Trip trip=new Trip();
+		for (int i = 0; i < allTrips.size(); i++) {
+			if (allTrips.get(i).getTruck() == truck && allTrips.get(i).getState()==2) {
+				trip=allTrips.get(i);
+			}
+		}
+		ArrayList<Location> locations=(ArrayList<Location>)locationRepository.findAll();
+		ArrayList<Location> truckLocations = new ArrayList<Location>();
+		for (int i = 0; i < locations.size(); i++) {
+			if (locations.get(i).getTrip() == trip) {
+				truckLocations.add(locations.get(i));
+			}
+		}
+		return truckLocations;
+	}
+	
 	@RequestMapping(value = "/viewDriverData/{truckId}", method = RequestMethod.GET)
 	public Map<String, Object> getDriver(@PathVariable String truckId) {
 		Map<String, Object> res = new HashMap<>();
@@ -282,28 +273,29 @@ public class TruckRestController {
 		return locationRepository.findFirstByDriverOrderByIdDesc(driver);
 	}
 
-	/* modified by amina */
-	@RequestMapping(value = "/{truckId}/getCurrentTrip", method = RequestMethod.GET)
-	public Map<String, Object> getCurrentTrip(@PathVariable String truckId) {
-		Map<String, Object> res = new HashMap<>();
+//	/* modified by amina */
+//	@RequestMapping(value = "/{truckId}/getCurrentTrip", method = RequestMethod.GET)
+//	public Map<String, Object> getCurrentTrip(@PathVariable String truckId) {
+//		Map<String, Object> res = new HashMap<>();
+//
+//		Truck truck = truckRepository.findOne(truckId);
+//		if (truck == null) {
+//			res.put("Error","there's no truck with that Id");
+//		} else {
+//
+//			ArrayList<Trip> trips = (ArrayList<Trip>) tripRepository.findAll();
+//			ArrayList<Trip> truckTrips = new ArrayList<Trip>();
+//			for (int i = 0; i < trips.size(); i++) {
+//				if (truck == trips.get(i).getTruck()) {
+//					truckTrips.add(trips.get(i));
+//				}
+//			}
+//			res.put("Success", truckTrips.get(truckTrips.size() - 1));
+//		}
+//
+//		return res;
+//	}
 
-		Truck truck = truckRepository.findOne(truckId);
-		if (truck == null) {
-			res.put("Error","there's no truck with that Id");
-		} else {
-
-			ArrayList<Trip> trips = (ArrayList<Trip>) tripRepository.findAll();
-			ArrayList<Trip> truckTrips = new ArrayList<Trip>();
-			for (int i = 0; i < trips.size(); i++) {
-				if (truck == trips.get(i).getTruck()) {
-					truckTrips.add(trips.get(i));
-				}
-			}
-			res.put("Success", truckTrips.get(truckTrips.size() - 1));
-		}
-
-		return res;
-	}
 
 	// Modified by Randa
 	@RequestMapping(value = "/{truckId}/getTruckTrip", method = RequestMethod.GET)

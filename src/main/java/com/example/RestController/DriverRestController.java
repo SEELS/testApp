@@ -35,6 +35,43 @@ public class DriverRestController {
 
 	@Autowired
 	private TripRepository tripRepository;
+	
+	@RequestMapping(value = "/{name}/{ssn}/{password}/saveDriver", method = RequestMethod.GET)
+	public Map<String, String> saveDriver(@PathVariable String name, @PathVariable String ssn,
+			@PathVariable String password) {
+		Map<String, String> res = new HashMap<>();
+		Driver driver_ = driverRepository.findBySsn(ssn);
+		if (driver_ != null) {
+			if (driver_.getDeleted()) {
+				driver_.setName(name);
+				driver_.setSsn(ssn);
+				driver_.setPassword(password);
+				driver_.setDeleted(false);
+				driver_.setLogged(false);
+				driver_.setRate(5.0);
+				if (driverRepository.save(driver_) != null)
+					res.put("Success", driver_.getDriver_id()+"");
+				else
+				res.put("Error", "error in connection to Server");
+			} else
+				// error that ssn in my system
+				res.put("Error", "there is driver with that ssn");
+		} else {
+			Driver driver = new Driver();
+			driver.setName(name);
+			driver.setSsn(ssn);
+			driver.setPassword(password);
+			driver.setDeleted(false);
+			driver.setLogged(false);
+			driver.setRate(5.0);
+			if (driverRepository.save(driver) != null)
+				res.put("Success", driver.getDriver_id()+"");
+			else
+			res.put("Error", "error in connection to Server");
+		}
+		return res;
+	}
+	
 
 	public double getDistanceBetweenTwoTruck(Driver first, Driver second) {
 		Location truckOneLocation = locationRepository.findFirstByDriverOrderByIdDesc(first);
@@ -79,17 +116,6 @@ public class DriverRestController {
 			}
 
 			for (Driver driver : nearestDriver) {
-				/*
-				 * Query are more effective in time this service call more than 4 time in 1
-				 * minute
-				 * 
-				 * ArrayList<Location>
-				 * allLocations=(ArrayList<Location>)locationRepository.findAll();
-				 * ArrayList<Location> firstDriverLocations=new ArrayList<Location>(); for(int
-				 * i=0;i<allLocations.size();i++) { if(allLocations.get(i).getDriver()==driver)
-				 * { firstDriverLocations.add(allLocations.get(i)); } } Location
-				 * driverLocation=firstDriverLocations.get(firstDriverLocations.size()-1);
-				 */
 				Location driverLocation = locationRepository.findFirstByDriverOrderByIdDesc(driver);
 				nearestDriverLocation.add(driverLocation);
 			}
@@ -279,42 +305,7 @@ public class DriverRestController {
 	}
 
 	/* if the manager wants to save a driver from the web site */
-	@RequestMapping(value = "/{name}/{ssn}/{password}/saveDriver", method = RequestMethod.GET)
-	public Map<String, String> saveDriver(@PathVariable String name, @PathVariable String ssn,
-			@PathVariable String password) {
-		Map<String, String> res = new HashMap<>();
-		Driver driver_ = driverRepository.findBySsn(ssn);
-		if (driver_ != null) {
-			if (driver_.getDeleted()) {
-				driver_.setName(name);
-				driver_.setSsn(ssn);
-				driver_.setPassword(password);
-				driver_.setDeleted(false);
-				driver_.setLogged(false);
-				driver_.setRate(5.0);
-				if (driverRepository.save(driver_) != null)
 
-					res.put("Success", driver_.getDriver_id()+"");
-				else
-				res.put("Error", "error in connection to Server");
-			} else
-				// error that ssn in my system
-				res.put("Error", "there is driver with that ssn");
-		} else {
-			Driver driver = new Driver();
-			driver.setName(name);
-			driver.setSsn(ssn);
-			driver.setPassword(password);
-			driver.setDeleted(false);
-			driver.setLogged(false);
-			driver.setRate(5.0);
-			if (driverRepository.save(driver) != null)
-				res.put("Success", driver.getDriver_id()+"");
-			else
-			res.put("Error", "error in connection to Server");
-		}
-		return res;
-	}
 	
 	@RequestMapping(value = "/updateDriver/{ssn}", method = RequestMethod.GET)
 	public Map<String, String> updateDriver(@PathVariable long driver_id) {
