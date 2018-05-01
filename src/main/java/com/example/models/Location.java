@@ -40,20 +40,18 @@ public class Location {
 	@JoinColumn(name="driver_id")
 	private Driver driver;
 	
+
+	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
+	@JoinColumn(name="trip_id")
+	private Trip trip;
+	
+	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
+	@JoinColumn(name="road_id")
+	private Road road;
 	// time stamps
 	
 	public Location() {
 		super();
-	}
-
-	public Location(long id, Double lat, Double lon, Driver driver, boolean deleted
-			) {
-		super();
-		this.id = id;
-		this.lat = lat;
-		this.lon = lon;
-		this.driver = driver;
-		this.deleted=deleted;
 	}
 
 	public long getId() {
@@ -118,5 +116,23 @@ public class Location {
 	public void setDeleted(boolean deleted) {
 		this.deleted = deleted;
 	}
+
+	public Trip getTrip() {
+		return trip;
+	}
+
+	public void setTrip(Trip trip) {
+		this.trip = trip;
+	}
+	
+	public Road getRoad() {
+		return road;
+	}
+
+	public void setRoad(Road road) {
+		this.road = road;
+	}
+	
+	
 	
 }
