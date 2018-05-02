@@ -53,9 +53,9 @@ public class GPS {
 	//modified by Mariam
 	//modified by sameh
 
-	@RequestMapping(value = "/{lat}/{lon}/{speed}/{driver_id}/{tripId}/saveLocation", method = RequestMethod.GET)
+	@RequestMapping(value = "/{lat}/{lon}/{speed}/{driver_id}/{tripId}/{road_id}/saveLocation", method = RequestMethod.GET)
 	public Map<String, Object> saveLocation(@PathVariable Double lat, @PathVariable Double lon,
-			@PathVariable Double speed, @PathVariable long driver_id,@PathVariable long tripId) {
+			@PathVariable Double speed, @PathVariable long driver_id,@PathVariable long tripId,@PathVariable long road_id) {
 		Map<String, Object> res = new HashMap<>();
 		Location l = new Location();
 		l.setLat(lat);
@@ -63,7 +63,7 @@ public class GPS {
 		l.setSpeed(speed);
 		Trip trip=tripRepository.findOne(tripId);
 		l.setTrip(trip);
-		if(locationRepository.findByRoad(trip.getRoad()).size()<=2)
+		if(road_id!=0)
 		{
 			l.setRoad(trip.getRoad());
 		}
