@@ -150,7 +150,16 @@ public class TripRestController {
 						{
 							trip.setState(2);
 							if(tripRepository.save(trip)!=null)
-								res.put("Success", "Your trip in process now");
+							{
+								
+								if(locationRepository.findByRoad(trip.getRoad()).size()>2)
+								{
+									res.put("Success", 0);
+								}
+								else
+									res.put("Success",trip.getRoad().getId() );
+									
+							}
 							else
 								res.put("Error", "Error Conection to Server");
 						}
@@ -184,11 +193,18 @@ public class TripRestController {
 					if (temp.containsKey("Error"))
 						res.put("Error", temp.get("Error"));
 					else {
-						trip.setState(0);
-						if(tripRepository.save(trip)!=null)
-							res.put("Success", "Done!!");
+						if(trip.getState()==0)
+						{
+							res.put("Error", "This Trip are Ended");
+						}
 						else
-							res.put("Error", "Error Conection to Server");
+						{
+							trip.setState(0);
+							if(tripRepository.save(trip)!=null)
+								res.put("Success", "Done!!");
+							else
+								res.put("Error", "Error Conection to Server");
+						}
 					}
 				}
 
