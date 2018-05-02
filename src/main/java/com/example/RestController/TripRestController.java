@@ -110,7 +110,7 @@ public class TripRestController {
 			String temp =dateFormat.format(date);
 			Date mydate = getDate(temp);
 //			ArrayList<Trip> trips = tripRepository.findByDriverAndDeletedAndDateGreaterThanEqual(driver, false, mydate);
-			ArrayList<Trip> trips = tripRepository.findByDriverAndDeletedAndState(driver, false, 0);
+			ArrayList<Trip> trips = tripRepository.findByDriverAndDeletedAndState(driver, false, 1);
 			if (trips == null) {
 				res.put("Error", "There's no Trips to that Driver");
 			} 
