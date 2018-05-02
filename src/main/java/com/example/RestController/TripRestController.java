@@ -118,7 +118,7 @@ public class TripRestController {
 				res.put("Error", "There's no Trips to that Driver");
 			}
 			else {
-				res.put("Success", trips);
+				res.put("Success", trips.get(0).getTrip_id());
 			}
 		}
 		return res;
