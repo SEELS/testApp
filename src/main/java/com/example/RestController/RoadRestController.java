@@ -97,11 +97,18 @@ public class RoadRestController {
 	}
 	
 	
-	@RequestMapping(value="/getAllRoads",method=RequestMethod.GET)
-	public ArrayList<Location> getAllRoads()
+	@RequestMapping(value="/getAllRoadsLocations",method=RequestMethod.GET)
+	public ArrayList<Location> getAllRoadsLocations()
 	{		
 		return locationRepository.findByRoadIsNotNull();
 	}
+	
+	@RequestMapping(value="/getAllRoads",method=RequestMethod.GET)
+	public ArrayList<Road> getAllRoads()
+	{		
+		return roadRepository.findByDeleted(false);
+	}
+	
 
 
 
