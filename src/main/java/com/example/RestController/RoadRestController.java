@@ -1,6 +1,7 @@
 package com.example.RestController;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,11 +48,14 @@ public class RoadRestController {
 			source.setLon(slon);
 			source.setSpeed(0.0);
 			source.setRoad(road);
+			Date date = new Date();
+			source.setTime(date);
 			Location destination = new Location();
 			destination.setLat(dlat);
 			destination.setLon(dlon);
 			destination.setSpeed(0.0);
 			destination.setRoad(road);
+			destination.setTime(date);
 			if(locationRepository.save(source)==null || locationRepository.save(destination)==null)
 			{
 				res.put("Error", "error in connection to Server");
@@ -78,7 +82,7 @@ public class RoadRestController {
 		}
 		else
 		{
-			ArrayList<Location> roadLocations = locationRepository.findByRoad(road);
+			ArrayList<Location> roadLocations = locationRepository.findByRoadOrderByTimeDesc(road);
 			if(roadLocations ==null)
 			{
 				res.put("Error", "there's no Location in this road");
