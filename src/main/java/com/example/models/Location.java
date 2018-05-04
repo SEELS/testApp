@@ -1,6 +1,8 @@
 package com.example.models;
 
 
+import java.util.Date;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -49,6 +51,9 @@ public class Location {
 	@JoinColumn(name="road_id")
 	private Road road;
 	// time stamps
+	@Column(name = "time")
+	private Date time;
+	
 	
 	public Location() {
 		super();
@@ -132,6 +137,15 @@ public class Location {
 	public void setRoad(Road road) {
 		this.road = road;
 	}
+
+	public Date getTime() {
+		return time;
+	}
+
+	public void setTime(Date time) {
+		this.time = time;
+	}
+	
 	
 	
 	

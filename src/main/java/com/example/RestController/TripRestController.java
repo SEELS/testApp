@@ -59,7 +59,7 @@ public class TripRestController {
 			if (road == null) {
 				res.put("Error", "there's No Road with that Id");
 			} else {
-				ArrayList<Location> roadLocations=locationRepository.findByRoad(road);
+				ArrayList<Location> roadLocations=locationRepository.findByRoadOrderByTimeDesc(road);
 				Driver driver = driverRepository.findOne(driver_id);
 				if (driver != null) {
 					Date date_ = getDate(date);
@@ -92,8 +92,8 @@ public class TripRestController {
 	public ArrayList<Location> saveTripRoad(@PathVariable long trip_id) {
 		Trip trip = tripRepository.findOne(trip_id);
 		Road road=trip.getRoad();
-		if(locationRepository.findByRoad(road).size()>2)
-			return locationRepository.findByRoad(road);
+		if(locationRepository.findByRoadOrderByTimeDesc(road).size()>2)
+			return locationRepository.findByRoadOrderByTimeDesc(road);
 		else
 			return new ArrayList<>();
 	}
@@ -152,7 +152,7 @@ public class TripRestController {
 							if(tripRepository.save(trip)!=null)
 							{
 								
-								if(locationRepository.findByRoad(trip.getRoad()).size()>2)
+								if(locationRepository.findByRoadOrderByTimeDesc(trip.getRoad()).size()>2)
 								{
 									res.put("Success", 0);
 								}

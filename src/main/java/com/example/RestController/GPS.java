@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,6 +62,8 @@ public class GPS {
 		l.setLat(lat);
 		l.setLon(lon);
 		l.setSpeed(speed);
+		Date date = new Date();
+		l.setTime(date);
 		Trip trip=tripRepository.findOne(tripId);
 		l.setTrip(trip);
 		if(road_id!=0)
