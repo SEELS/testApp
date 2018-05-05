@@ -82,7 +82,7 @@ public class RoadRestController {
 		}
 		else
 		{
-			ArrayList<Location> roadLocations = locationRepository.findByRoadOrderByTimeDesc(road);
+			ArrayList<Location> roadLocations = locationRepository.findByDeletedAndRoadOrderByTimeDesc(false, road);
 			if(roadLocations ==null)
 			{
 				res.put("Error", "there's no Location in this road");
