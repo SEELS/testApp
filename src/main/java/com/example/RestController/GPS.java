@@ -184,15 +184,15 @@ public class GPS {
 	}
 	
 	@RequestMapping(value="/deleteLocation/{Location_id}",method=RequestMethod.GET)
-	public boolean deleteLocation(@PathVariable long location_id)
+	public boolean deleteLocation(@PathVariable long Location_id)
 	{
-		if(locationRepository.findOne(location_id)==null)
+		if(locationRepository.findOne(Location_id)==null)
 		{
 			return false;
 		}
 		else
 		{
-			Location location=locationRepository.findOne(location_id);
+			Location location=locationRepository.findOne(Location_id);
 			location.setDeleted(true);
 			if(locationRepository.save(location)!=null)
 				return true;
