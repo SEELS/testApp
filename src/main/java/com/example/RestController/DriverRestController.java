@@ -157,6 +157,23 @@ public class DriverRestController {
 		}
 	}
 
+	@RequestMapping(value="/updateToken/{driverId}/{token}")
+	public Map<String,Object> updateToken(@PathVariable long driverId,@PathVariable String token)
+	{
+		Map<String,Object> res = new HashMap<>();
+		Driver driver = driverRepository.findOne(driverId);
+		if(driver!=null)
+		{
+			driver.setToken(token);
+			driverRepository.save(driver);
+			res.put("Success", "Done!!");
+		}
+		else
+		{
+			res.put("Error", "No Driver With that ID!!");
+		}
+		return res;
+	}
 	/* calculate penalty during trip */
 	// Amina
 	@RequestMapping(value = "/calculateSpeedPenalty/{tripId}", method = RequestMethod.GET)
