@@ -28,5 +28,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="mysql-connector-java-5.1.27-bin.jar"/>
+	<classpathentry kind="lib" path="java-json.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
