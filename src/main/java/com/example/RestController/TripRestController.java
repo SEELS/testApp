@@ -306,6 +306,7 @@ public class TripRestController {
 		return null;
 	}
 
+
 	public Map<String, String> SetDriverToTruck(String Truck_id,long driver_id) {
 		Map<String, String> res = new HashMap<>();
 		if (driver_id == 0) {

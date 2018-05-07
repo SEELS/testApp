@@ -1,11 +1,30 @@
-
 package com.example.RestController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.io.BufferedReader;
+
+import java.io.IOException;
+
+import java.io.InputStreamReader;
+
+import java.io.OutputStreamWriter;
+
+import java.net.HttpURLConnection;
+
+import java.net.MalformedURLException;
+
+import java.net.URL;
+
+import org.json.JSONException;
+
+import org.json.JSONObject;
+
+
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.SystemPropertyUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +39,11 @@ import com.example.models.Driver;
 import com.example.models.Location;
 import com.example.models.Trip;
 
+
 @RestController
 @CrossOrigin(origins = "*")
 public class TruckRestController {
+	final static private String FCM_URL = "https://fcm.googleapis.com/fcm/send";
 
 	@Autowired
 	private TruckRepository truckRepository;
@@ -104,16 +125,27 @@ public class TruckRestController {
 			res.put("Success", truck);
 		return res;
 	}
-
+	
+	//modified by Mariam
 	/* it gets the actual current location of truck to draw a marker on the map */
-	@RequestMapping(value = "/viewTruckLocation/{truck_id}", method = RequestMethod.GET)
-	public Map<String, Object> getCurrentLocation(@PathVariable String truck_id) {
+	@RequestMapping(value = "/viewTruckLocation/{driver_id}", method = RequestMethod.GET)
+	public Map<String, Object> getCurrentLocation(@PathVariable long driver_id) {
 		Map<String, Object> res = new HashMap<>();
-		Truck truck = truckRepository.findById(truck_id);
-		if (truck == null)
-			res.put("Error","there's no truck with that Id");
+		Driver driver = driverRepository.findOne(driver_id);
+		if (driver != null)
+		{
+			//res.put("Error","there's no truck with that Id");
+			if(locationRepository.findFirstByDriverOrderByIdDesc(driver)!=null)
+			{
+				res.put("Success", locationRepository.findFirstByDriverOrderByIdDesc(driver));
+			}
+			else
+			{
+				res.put("Error","there's no location for this driver");
+			}
+		}   
 		else {
-			res.put("Success", locationRepository.findFirstByTruckOrderByIdDesc(truck));
+			res.put("Error","there's no driver with that Id");
 		}
 		return res;
 	}
@@ -245,25 +277,36 @@ public class TruckRestController {
 		double truck1Speed = truckOneLocation.getSpeed();
 		double truck2Speed = truckTwoLocation.getSpeed();
 		double dist = getDistance(truckOneLocation, truckTwoLocation);
-
+		//get drivers Tokens
+		String tokenDriver1=driver1.getToken();
+		String tokenDriver2=driver2.getToken();
+		String Key="AIzaSyBrcdEhjh8S2NbfjCKzvUnxpK6PmiCYTfw";
+		String Message="be carefull ya ramaaaaa, you will have accident isA 🙂";
 		if (dist <= 1000)
+		{
+			send_FCM_Notification(tokenDriver1,Key,Message);
+			send_FCM_Notification(tokenDriver2,Key,Message);
 			return true; // Possible accident, distance <= 1km
+		}
 		else if (truck2Speed <= truck1Speed)
 			return false; // No Accident
-		else {
-			double newLat1 = truckOneLocation.getLat() + truck1Speed;
-			double newLon1 = truckOneLocation.getLon() + truck1Speed;
-			double newLat2 = truckTwoLocation.getLat() + truck1Speed;
-			double newLon2 = truckTwoLocation.getLon() + truck1Speed;
-			// System.out.println(newLat1 + "\t" + newLat2);
-			// System.out.println(newLon1 + "\t" + newLon2);
-			if (newLat2 >= newLat1 || newLon2 >= newLon1)
-				return true; // Possible Accident
-								// if truck2 speed: 50, location:60, truck1
-								// speed:30, location:120
-								// after 3 hrs the condition will be true that
-								// there'll be a possible clash
-		}
+//		else {
+//			double newLat1 = truckOneLocation.getLat() + truck1Speed;
+//			double newLon1 = truckOneLocation.getLon() + truck1Speed;
+//			double newLat2 = truckTwoLocation.getLat() + truck1Speed;
+//			double newLon2 = truckTwoLocation.getLon() + truck1Speed;
+//			// System.out.println(newLat1 + "\t" + newLat2);
+//			// System.out.println(newLon1 + "\t" + newLon2);
+//			if (newLat2 >= newLat1 || newLon2 >= newLon1)
+//			{
+//				send_FCM_Notification(tokenDriver1,Key,Message);
+//				send_FCM_Notification(tokenDriver2,Key,Message);
+//				return true; // Possible Accident
+//								// if truck2 speed: 50, location:60, truck1
+//								// speed:30, location:120
+//								// after 3 hrs the condition will be true that
+//			}			// there'll be a possible clash
+//		}
 		return false;
 
 	}
@@ -415,5 +458,53 @@ public class TruckRestController {
 	}
 	
 	
+	public void send_FCM_Notification(String tokenId, String server_key, String message){
+		try{
+		URL url = new URL(FCM_URL);
+		HttpURLConnection conn;
+		conn = (HttpURLConnection) url.openConnection();
+		conn.setUseCaches(false);
+		conn.setDoInput(true);
+		conn.setDoOutput(true);
+		conn.setRequestMethod("POST");
+		conn.setRequestProperty("Authorization","key="+server_key);
+		conn.setRequestProperty("Content-Type","application/json");
+		JSONObject infoJson = new JSONObject();
+		infoJson.put("title","Here is your notification.");
+		infoJson.put("body", message);
+		JSONObject json = new JSONObject();
+		json.put("to",tokenId.trim());
+		json.put("notification", infoJson);
+		OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+		wr.write(json.toString());
+		wr.flush();
+		int status = 0;
+		if( null != conn ){
+		status = conn.getResponseCode();
+		}
+		if( status != 0){
+		if( status == 200 ){
+		BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+		System.out.println("Android Notification Response : " + reader.readLine());
+		}else if(status == 401){
+		System.out.println("Notification Response : TokenId : " + tokenId + " Error occurred :");
+		}else if(status == 501){
+		System.out.println("Notification Response : [ errorCode=ServerError ] TokenId : " + tokenId);
+		}else if( status == 503){
+		System.out.println("Notification Response : FCM Service is Unavailable  TokenId : " + tokenId);
+
+		}
+		}
+
+		}catch(MalformedURLException mlfexception){
+		System.out.println("Error occurred while sending push Notification!.." + mlfexception.getMessage());
+		}catch(IOException mlfexception){
+		System.out.println("Reading URL, Error occurred while sending push Notification!.." + mlfexception.getMessage());
+		}catch(JSONException jsonexception){
+		System.out.println("Message Format, Error occurred while sending push Notification!.." + jsonexception.getMessage());
+		}catch (Exception exception) {
+		System.out.println("Error occurred while sending push Notification!.." + exception.getMessage());
+		}
+		}
 
 }
