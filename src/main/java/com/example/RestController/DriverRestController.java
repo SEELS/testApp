@@ -190,7 +190,6 @@ public class DriverRestController {
 	
 		Penalties p = new Penalties();
 		
-		location.setSpeed(70.0);
 		double diffrence = location.getSpeed() - civilSpeed;
 		double penalty = 0.0;
 		for (int i = 10; i <= diffrence; i += 10) {
