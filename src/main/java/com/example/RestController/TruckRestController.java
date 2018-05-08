@@ -24,7 +24,6 @@ import org.json.JSONObject;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.SystemPropertyUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -241,6 +240,7 @@ public class TruckRestController {
 	}
 
 	/* check if there will be a frontal crushing with cars */
+	/* modified by mariam */
 	@RequestMapping(value = "/{truck1_id}/{truck2_id}/changeInSpeed", method = RequestMethod.GET)
 	public boolean changeInSpeed(@PathVariable String truck1_id, @PathVariable String truck2_id) {
 		ArrayList<Trip> trips = (ArrayList<Trip>) tripRepository.findAll();
@@ -460,7 +460,7 @@ public class TruckRestController {
 	
 	public void send_FCM_Notification(String tokenId, String server_key, String message){
 		try{
-		URL url = new URL(FCM_URL);
+		URL url = new URL("https://fcm.googleapis.com/fcm/send");
 		HttpURLConnection conn;
 		conn = (HttpURLConnection) url.openConnection();
 		conn.setUseCaches(false);
