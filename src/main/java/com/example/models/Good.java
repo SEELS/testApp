@@ -1,11 +1,15 @@
 package com.example.models;
 
 import java.util.Date;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
 @Entity
@@ -33,11 +37,8 @@ public class Good {
 	@Column(name = "deleted")
 	private boolean deleted;
 	
-	
-	
-	@ManyToOne
-	@JoinColumn(name="trip_id")
-	private Trip trip;
+	@OneToMany(mappedBy="good",cascade = CascadeType.ALL)
+	private Set<TripGood> goods ;
 
 	public Good() {
 		super();
@@ -45,14 +46,14 @@ public class Good {
 
 	
 
-	public Trip getTrip() {
-		return trip;
+	public Set<TripGood> getTripGood() {
+		return goods;
 	}
 
 
 
-	public void setTrip(Trip trip) {
-		this.trip = trip;
+	public void setTripGood(Set<TripGood> goods) {
+		this.goods = goods;
 	}
 
 
@@ -115,6 +116,13 @@ public class Good {
 
 	public void setDeleted(boolean deleted) {
 		this.deleted = deleted;
+	}
+
+
+
+	public void setId(String new_barcode) {
+		// TODO Auto-generated method stub
+		this.barcode=new_barcode;
 	}
 	
 	

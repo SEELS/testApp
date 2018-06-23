@@ -29,7 +29,7 @@ public class RoadRestController {
 	@Autowired
 	private LocationRepository locationRepository;
 	
-	
+	//ErrorFree :D 
 	@RequestMapping(value = "/saveRoad/{name}/{dlat}/{dlon}/{slat}/{slon}/{state}", method = RequestMethod.GET)
 	public Map<String, Object> saveRoadObject(@PathVariable double state,@PathVariable String name,@PathVariable double dlat,@PathVariable double dlon,@PathVariable double slat,@PathVariable double slon)
 	{
@@ -70,7 +70,7 @@ public class RoadRestController {
 	}
 
 
-	
+	//Error Free :D 
 	@RequestMapping(value = "/getRoad/{road_id}", method = RequestMethod.GET)
 	public Map<String, Object> getRoad(@PathVariable long road_id) 
 	{
@@ -101,12 +101,14 @@ public class RoadRestController {
 	}
 	
 	
+	//Error Free :D 
 	@RequestMapping(value="/getAllRoadsLocations",method=RequestMethod.GET)
 	public ArrayList<Location> getAllRoadsLocations()
 	{		
 		return locationRepository.findByRoadIsNotNull();
 	}
 	
+	//Error Free :D 
 	@RequestMapping(value="/getAllRoads",method=RequestMethod.GET)
 	public ArrayList<Road> getAllRoads()
 	{		
@@ -115,7 +117,7 @@ public class RoadRestController {
 	
 
 
-
+	//Error Free :D 
 	@RequestMapping(value="/deleteAllRoads",method=RequestMethod.GET)
 	public boolean deleteAllRoads()
 	{
@@ -129,6 +131,7 @@ public class RoadRestController {
 		return true;
 	}
 	
+	//Error Free :D 
 	@RequestMapping(value="/deleteRoad/{road_id}",method=RequestMethod.GET)
 	public boolean deleteRoad(@PathVariable long road_id)
 	{

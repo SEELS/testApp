@@ -18,12 +18,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.Repostitory.DriverRepository;
 import com.example.Repostitory.LocationRepository;
 import com.example.Repostitory.PenaltiesRepostitory;
+import com.example.Repostitory.TripLocationRepository;
 import com.example.Repostitory.TripRepository;
 import com.example.Repostitory.TruckRepository;
 import com.example.models.Driver;
 import com.example.models.Location;
 import com.example.models.Penalties;
 import com.example.models.Trip;
+import com.example.models.TripLocation;
 import com.example.models.Truck;
 
 @RestController
@@ -39,15 +41,12 @@ public class GPS {
 
 	@Autowired
 	private DriverRepository driverRepository;
-	
+	@Autowired
+	private TripLocationRepository tripLocationRepository;
 	
 	
 	@Autowired
 	private TripRepository tripRepository;
-
-	
-	@Autowired
-	private PenaltiesRepostitory penaltiesRepostitory;
 
 	/* saving location with a specific driver and speed */
 	// sara & sameh Edit 3/4/2018 1:20 Dr :Shawky
@@ -64,8 +63,13 @@ public class GPS {
 		l.setSpeed(speed);
 		Date date = new Date();
 		l.setTime(date);
-		Trip trip=tripRepository.findOne(tripId);
-		l.setTrip(trip);
+		Trip trip = new Trip();
+		if(tripRepository.findOne(tripId)!=null)
+			 
+			trip=tripRepository.findOne(tripId);
+		else
+			res.put("Error", "trip not found");
+		
 		if(road_id!=0)
 		{
 			l.setRoad(trip.getRoad());
@@ -96,11 +100,22 @@ public class GPS {
 						res.put("Error","Location not save Database Error");
 					}
 					else
-						res.put("Success", "location are added");
+						{
+						
+						TripLocation tripLocation = new TripLocation(l,trip);
+						
+						if(tripLocationRepository.save(tripLocation)!=null)
+							res.put("Success", "location are added");
+						else
+							res.put("Error", "not saved");
+
+						}
+						
 				}
 			}
-			Map<String,Double> p=calculateBrakePenalty(truck.getPreviousSpeed(), truck.getCurrentSpeed(), tripId);
-			p=calculateSpeedPenalty(tripId);
+			PenaltiesRestController prs= new PenaltiesRestController();
+			Map<String,Object> p=prs.calculateBrakePenalty(truck.getPreviousSpeed(), truck.getCurrentSpeed(), tripId);
+			p=prs.calculateSpeedPenalty(tripId);
 			if (p.containsKey("driver total rate is"))
 			{
 				res.put("rate: ", p.get("driver total rate is"));
@@ -118,170 +133,128 @@ public class GPS {
 	 * a trips
 	 */
 	@RequestMapping(value = "/getCurrentLocation", method = RequestMethod.GET)
-	public Location getCurrentLocation() {
-		ArrayList<Location> l = (ArrayList<Location>) locationRepository.findAll();
-		Comparator<Location> locationComparator = new Comparator<Location>() {
+	public Map<String ,Object> getCurrentLocation() {
+		Map<String, Object> res = new HashMap<>();
+		if(locationRepository.findAll()!=null)
+		{
+			ArrayList<Location> l = (ArrayList<Location>) locationRepository.findAll();
+			Comparator<Location> locationComparator = new Comparator<Location>() {
+				@Override
+				public int compare(Location l1, Location l2) {
+					return (int) (l1.getId() - l2.getId());
+				}
 
-			@Override
-			public int compare(Location l1, Location l2) {
-				return (int) (l1.getId() - l2.getId());
+			};
+			Collections.sort(l, locationComparator);
+			if (l.size() != 0) {
+				Location temp = l.get(l.size() - 1);
+				if (temp.getId() == 1) {
+					temp = l.get(0);
+				}
+				res.put("Success", temp);
 			}
-
-		};
-		Collections.sort(l, locationComparator);
-		if (l.size() != 0) {
-			Location temp = l.get(l.size() - 1);
-			if (temp.getId() == 1) {
-				temp = l.get(0);
+			else
+			{
+				res.put("Error", "There are no locations saved!");
 			}
-			return temp;
 		}
-		return null;
+		else
+		{
+			res.put("Error", "There are no locations saved!");
+		}
+		return res;
 
 	}
 
 	@RequestMapping(value="/getAllLocations",method=RequestMethod.GET)
-	public ArrayList<Location> getAllLocations()
+	public Map<String,Object> getAllLocations()
 	{
-		ArrayList<Location> locations=new ArrayList<Location>();
-		ArrayList<Location> AllLocations=(ArrayList<Location>)locationRepository.findAll();
-		for(int i=0;i<AllLocations.size();i++)
+		Map<String, Object> res = new HashMap<>();
+		if(locationRepository.findAllByDeleted(false)!=null)
 		{
-			if(AllLocations.get(i).getDeleted()==false)
-			{
-				locations.add(AllLocations.get(i));
-			}
+			ArrayList<Location> locations=(ArrayList<Location>)locationRepository.findAllByDeleted(false);
+			res.put("Success", locations);
 		}
-		return locations;
+		else
+		{
+			res.put("Error", "There are no locations saved!");
+		}
+		return res;
 	}
 	
 	@RequestMapping(value="/getLocation/{location_id}",method=RequestMethod.GET)
-	public Location getLocation(@PathVariable long location_id)
+	public Map<String ,Object> getLocation(@PathVariable long location_id)
 	{
+		Map<String, Object> res = new HashMap<>();
 		if(locationRepository.findOne(location_id)==null)
 		{
-			return null;
+			res.put("Error", "There is no location with id!");
+			
 		}
-		Location location =locationRepository.findOne(location_id);
-		if(location.getDeleted()==true)
+		else
 		{
-			return null;
+			Location location =locationRepository.findOne(location_id);
+			if(location.getDeleted()==true)
+			{
+				res.put("Error","There location is deleted!" );
+			}
+			else
+			{
+				res.put("Success", location);
+			}
 		}
-		return location;
+		
+		return res;
 	}
 	
 	@RequestMapping(value="/deleteAllLocations",method=RequestMethod.GET)
-	public boolean deleteAllLocations()
+	public Map<String,Object> deleteAllLocations()
 	{
-		ArrayList<Location> locations= (ArrayList<Location>)locationRepository.findAll();
-		for(int i=0;i<locations.size();i++)
+		boolean flag=true;
+		Map<String, Object> res = new HashMap<>();
+		if(locationRepository.findAll()!=null)
 		{
-			locations.get(i).setDeleted(true);
-			if(locationRepository.save(locations.get(i))==null)
-				return false;
+			res.put("Error","There are no locations saved!");
 		}
-		return true;
+		else
+		{
+			ArrayList<Location> locations= (ArrayList<Location>)locationRepository.findAll();
+			for(int i=0;i<locations.size();i++)
+			{
+				locations.get(i).setDeleted(true);
+				if(locationRepository.save(locations.get(i))==null)
+					flag=false;
+			}
+			if(flag==false)
+			{
+				res.put("Error", "Connection Error!");
+			}
+			else
+			{
+				res.put("Success","All goods are deleted!");
+			}
+		}
+		return res;
 	}
 	
 	@RequestMapping(value="/deleteLocation/{Location_id}",method=RequestMethod.GET)
-	public boolean deleteLocation(@PathVariable long Location_id)
+	public Map<String,Object> deleteLocation(@PathVariable long Location_id)
 	{
+		Map<String, Object> res = new HashMap<>();
 		if(locationRepository.findOne(Location_id)==null)
 		{
-			return false;
+			res.put("Error","There is no Location With this id!");
 		}
 		else
 		{
 			Location location=locationRepository.findOne(Location_id);
 			location.setDeleted(true);
 			if(locationRepository.save(location)!=null)
-				return true;
+				res.put("Success", "Location is deleted");
+			else
+				res.put("Error", "Connection Error");
 		}
-		return false;
-	}
-	
-	/* calculate penalty during trip */
-	// Amina
-	public Map<String,Double> calculateSpeedPenalty(long tripId) {
-		double civilSpeed=90.0;
-		Trip t = tripRepository.findOne(tripId);
-		Truck truck=t.getTruck();
-		Location location = new Location();
-		location=locationRepository.findFirstByTruckOrderByIdDesc(truck);//trc.getCurrentLocation(truck.getId());
-		Penalties p = new Penalties();
-		location.setSpeed(70.0);
-		double diffrence = location.getSpeed() - civilSpeed;
-		double penalty = 0.0;
-		for (int i = 10; i <= diffrence; i += 10) {
-			penalty += 0.1;
-		}
-		p.setLocation(location);
-		p.setTrip(t);
-		p.setType("speed");
-		p.setValue(penalty);
-		penaltiesRepostitory.save(p);
-		Map<String,Double> res=new HashMap<>();
-		if(penaltiesRepostitory.findByTrip(t)!=null)
-			res.put("driver total rate is", rate(tripId)); 
-		else
-			res.put("Error",rate(tripId));
 		return res;
 	}
-
-	// Amina
-	public Map<String,Double> calculateBrakePenalty(double previousSpeed,double currentSpeed,long tripId) {
-		Trip trip = tripRepository.findOne(tripId);
-		Truck truck=trip.getTruck();
-		Location location = new Location();
-		location=locationRepository.findFirstByTruckOrderByIdDesc(truck);
-		double diffrence = Math.abs(previousSpeed - currentSpeed);
-
-		if (diffrence >= 50) {
-			Penalties p = new Penalties();
-			p.setLocation(location);
-			p.setTrip(trip);
-			p.setType("brake");
-			p.setValue(0.2);
-			penaltiesRepostitory.save(p);
-		
-		}
-		Map<String,Double> res=new HashMap<>();
-		
-		if(penaltiesRepostitory.findByTrip(trip)!=null)
-			res.put("driver total rate is", rate(tripId)); 
-		else
-			res.put("Error",rate(tripId));
-		return res;
-
-	}
-
-	public double rate(long tripId) {
-		Trip trip = tripRepository.findOne(tripId);
-		Driver driver = trip.getDriver();
-		double tripRate = 5.0;
-		ArrayList<Penalties> ps = penaltiesRepostitory.findByTrip(trip);
-		for (int i = 0; i < ps.size(); i++) {
-			
-			
-			tripRate -= ps.get(i).getValue();
-			
-		}
-
-		trip.setRate(tripRate);
-		tripRepository.save(trip);
-		ArrayList<Trip> driverTrips = tripRepository.findByDriver(driver);
-		double sum = 0.0;
-		for (int i = 0; i < driverTrips.size(); i++) {
-			sum += driverTrips.get(i).getRate();
-		}
-
-		double driverTotalRate = (double) sum / driverTrips.size();
-		driver.setRate(driverTotalRate);
-		driverRepository.save(driver);
-
-		return driverTotalRate;
-	}
-
-	
 	
 }
