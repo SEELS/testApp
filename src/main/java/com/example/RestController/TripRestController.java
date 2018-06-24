@@ -13,18 +13,25 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.Repostitory.DriverRepository;
+import com.example.Repostitory.GoodRepository;
 import com.example.Repostitory.LocationRepository;
 import com.example.Repostitory.RoadRepository;
+import com.example.Repostitory.TripGoodRepository;
+import com.example.Repostitory.TripLocationRepository;
 import com.example.Repostitory.TripRepository;
 import com.example.Repostitory.TruckRepository;
 
 import com.example.models.Driver;
+import com.example.models.Good;
 import com.example.models.Location;
 import com.example.models.Road;
 import com.example.models.Trip;
+import com.example.models.TripGood;
+import com.example.models.TripLocation;
 import com.example.models.Truck;
 
 @RestController
@@ -32,9 +39,17 @@ import com.example.models.Truck;
 public class TripRestController {
 	@Autowired
 	private TripRepository tripRepository;
-
+	
+	@Autowired
+	private TripLocationRepository tripLocationRepository;
 	@Autowired
 	private RoadRepository roadRepository;
+	
+	@Autowired
+	private GoodRepository goodRepository;
+	
+	@Autowired
+	private TripGoodRepository tripGoodRepository;
 
 	@Autowired
 	private TruckRepository truckRepository;
@@ -47,9 +62,11 @@ public class TripRestController {
 
 	//Modified by Mariam 
 	//Modified By Sameh
+	
 	@RequestMapping(value = "/saveTrip/{truck_id}/{driver_id}/{parent_id}/{road_id}/{date}", method = RequestMethod.GET)
 	public Map<String, String> saveTrip(@PathVariable String truck_id, @PathVariable String date,
-			@PathVariable long driver_id, @PathVariable long parent_id, @PathVariable long road_id) {
+			@PathVariable long driver_id, @PathVariable long parent_id, @PathVariable long road_id, @RequestParam("barcode") ArrayList<String> barcode
+			,@RequestParam("num_of_good") ArrayList<Integer> num_of_good) {
 		Map<String, String> res = new HashMap<>();
 		Truck truck = truckRepository.findOne(truck_id);
 		Road road = roadRepository.findOne(road_id);
@@ -74,7 +91,33 @@ public class TripRestController {
 					trip.setRoad(road);
 					trip.setState(1);
 					if (tripRepository.save(trip) != null) {
-						res.put("Success", "Trip are added");
+						TripGood tripGood=new TripGood();
+						tripGood.setTrip(trip);
+						for(int i=0;i<barcode.size();i++)
+						{
+							if(goodRepository.findOne(barcode.get(i))!=null)
+						    {
+						    	Good good=goodRepository.findOne(barcode.get(i));
+						    	tripGood.setGood(good);
+						    	tripGood.setNum_of_goods(num_of_good.get(i));
+						    	tripGood.setScan_in_num_of_goods(0);
+						    	tripGood.setScan_out_num_of_goods(0);
+						    	tripGood.setState(0);
+						    	if (tripGoodRepository.save(tripGood) != null) {
+						    		res.put("Success", "Trip is added");
+						    	}
+						    	else
+						    	{
+						    		res.put("Error", "Trip not save Database Error");
+						    	}
+						    }
+						    else
+						    {
+						    	res.put("Error", "Good is not existed");
+						    }
+						}
+					    
+						
 					} else
 						res.put("Error", "Trip not save Database Error");
 					
@@ -87,15 +130,20 @@ public class TripRestController {
 
 		return res;
 	}
-	//Modified by Sameh
 	@RequestMapping(value = "/returnTrip/{trip_id}", method = RequestMethod.GET)
-	public ArrayList<Location> saveTripRoad(@PathVariable long trip_id) {
-		Trip trip = tripRepository.findOne(trip_id);
-		Road road=trip.getRoad();
-		if(locationRepository.findByDeletedAndRoadOrderByTimeDesc(false,road).size()>2)
-			return locationRepository.findByDeletedAndRoadOrderByTimeDesc(false,road);
-		else
-			return new ArrayList<>();
+	public Map<String,Object> saveTripRoad(@PathVariable long trip_id) {
+		Map<String, Object> res = new HashMap<>();
+		if(tripRepository.findOne(trip_id)!=null)
+		{
+			Trip trip = tripRepository.findOne(trip_id);
+			Road road=trip.getRoad();
+			if(locationRepository.findByDeletedAndRoadOrderByTimeDesc(false,road).size()>2)
+				res.put("Success", locationRepository.findByDeletedAndRoadOrderByTimeDesc(false,road));
+			else
+				res.put("Error","There are no locations for this trip ");
+		}
+		return res;
+		
 	}
 
 	@RequestMapping(value = "/driverTrip/{driverId}", method = RequestMethod.GET)
@@ -105,17 +153,17 @@ public class TripRestController {
 		if (driver == null) {
 			res.put("Error", "There's no driver with that Id");
 		} else {
-			DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
-			Date date = new Date();
-			String temp =dateFormat.format(date);
-			Date mydate = getDate(temp);
+//			DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd");
+//			Date date = new Date();
+//			String temp =dateFormat.format(date);
+//			Date mydate = getDate(temp);
 //			ArrayList<Trip> trips = tripRepository.findByDriverAndDeletedAndDateGreaterThanEqual(driver, false, mydate);
 			ArrayList<Trip> trips = tripRepository.findByDriverAndDeletedAndState(driver, false, 1);
 			if (trips == null) {
-				res.put("Error", "There's no Trips to that Driver");
+				res.put("Error", "There's no Trips for that Driver");
 			} 
 			else if(trips.isEmpty()) {
-				res.put("Error", "There's no Trips to that Driver");
+				res.put("Error", "There's no Trips for that Driver");
 			}
 			else {
 				res.put("Success", trips.get(0).getTrip_id());
@@ -135,7 +183,7 @@ public class TripRestController {
 		} else {
 			Trip trip = tripRepository.findOne(tripId);
 			if (trip == null) {
-				res.put("Error", "There's no Trip to that Driver");
+				res.put("Error", "There's no Trip for that Driver");
 			} else {
 				Truck truck = trip.getTruck();
 				Map<String, String> temp = SetDriverToTruck(truck.getId(), driverId);
@@ -148,6 +196,7 @@ public class TripRestController {
 					else {
 						if(trip.getState()==1 )
 						{
+							//also need to change state of good
 							trip.setState(2);
 							if(tripRepository.save(trip)!=null)
 							{
@@ -164,7 +213,7 @@ public class TripRestController {
 								res.put("Error", "Error Conection to Server");
 						}
 						else
-							res.put("Error", "this trip are completed ");
+							res.put("Error", "this trip is completed ");
 					}
 				}
 
@@ -182,7 +231,7 @@ public class TripRestController {
 		} else {
 			Trip trip = tripRepository.findOne(tripId);
 			if (trip == null) {
-				res.put("Error", "There's no Trip to that Driver");
+				res.put("Error", "There's no Trip for that Driver");
 			} else {
 				Truck truck = trip.getTruck();
 				Map<String, String> temp = SetDriverToTruck(truck.getId(), 0);
@@ -195,10 +244,11 @@ public class TripRestController {
 					else {
 						if(trip.getState()==0)
 						{
-							res.put("Error", "This Trip are Ended");
+							res.put("Error", "This Trip is Ended");
 						}
 						else
 						{
+							//change state of good 
 							trip.setState(0);
 							if(tripRepository.save(trip)!=null)
 								res.put("Success", "Done!!");
@@ -214,44 +264,80 @@ public class TripRestController {
 	}
 
 	@RequestMapping(value = "/getAllTrips", method = RequestMethod.GET)
-	public ArrayList<Trip> getAllTrips() {
-		return (ArrayList<Trip>) tripRepository.findByDeleted(false);
+	public Map<String,Object> getAllTrips() {
+		
+		Map<String,Object> res = new HashMap<>();
+		if(tripRepository.findByDeleted(false)!=null)
+		{
+			res.put("Success", tripRepository.findByDeleted(false));
+		}
+		else
+		{
+			res.put("Error", "There are no Trips saved");
+		}
+			
+		return res;
 	}
 
 	@RequestMapping(value = "/getTrip/{trip_id}", method = RequestMethod.GET)
-	public Trip getTrip(@PathVariable long trip_id) {
+	public Map<String ,Object> getTrip(@PathVariable long trip_id) {
+		Map<String,Object> res = new HashMap<>();
 		if (tripRepository.findOne(trip_id) == null) {
-			return null;
+			res.put("Error", "There is no trip with this id!");
 		}
-		Trip trip = tripRepository.findOne(trip_id);
-		if (trip.isDeleted() == true) {
-			return null;
+		else
+		{
+			Trip trip = tripRepository.findOne(trip_id);
+			if (trip.isDeleted() == true) {
+				res.put("Error", "This trip is deleted!");
+			}
+			else
+			{
+				res.put("Success", trip);
+			}
 		}
-		return trip;
+		
+		return res;
 	}
 
 	@RequestMapping(value = "/deleteAllTrips", method = RequestMethod.GET)
-	public boolean deleteAllTrips() {
-		ArrayList<Trip> trips = (ArrayList<Trip>) tripRepository.findAll();
-		for (int i = 0; i < trips.size(); i++) {
-			trips.get(i).setDeleted(true);
-			if (tripRepository.save(trips.get(i)) == null)
-				return false;
+	public Map<String,Object> deleteAllTrips() {
+		Map<String,Object> res = new HashMap<>();
+		boolean flag=true;
+		if(tripRepository.findAll()!=null)
+		{
+			ArrayList<Trip> trips = (ArrayList<Trip>) tripRepository.findAll();
+			for (int i = 0; i < trips.size(); i++) {
+				trips.get(i).setDeleted(true);
+				if (tripRepository.save(trips.get(i)) == null)
+					flag=false;
+			}
+				if(flag==true)
+					res.put("Success", "All trips are deleted!");
+				else
+					res.put("Error", "Connection Error!");
 		}
-		return true;
+		else
+		{
+			res.put("Error", "There are no trips saved!");
+		}
+		return res;
 	}
 
 	@RequestMapping(value = "/deleteTrip/{trip_id}", method = RequestMethod.GET)
-	public boolean deleteTrip(@PathVariable long trip_id) {
+	public Map<String ,Object> deleteTrip(@PathVariable long trip_id) {
+		Map<String,Object> res = new HashMap<>();
 		if (tripRepository.findOne(trip_id) == null) {
-			return false;
+			res.put("Error","There is no trip with this id");
 		} else {
 			Trip trip = tripRepository.findOne(trip_id);
 			trip.setDeleted(true);
 			if (tripRepository.save(trip) != null)
-				return true;
+				res.put("Success", "This trip is deleted!");
+			else
+				res.put("Error", "Connection Error!");
 		}
-		return false;
+		return res;
 	}
 	
 	@RequestMapping(value = "/tripLocations/{trip_id}", method = RequestMethod.GET)
@@ -261,18 +347,53 @@ public class TripRestController {
 		if (trip == null) {
 			res.put("Error", "Error Conection to Server");
 		} else {
-			ArrayList<Location> locations = locationRepository.findByTrip(trip);
-			if(locations==null)
-			{
-				res.put("Error", "There's No Locations to this Trip");
-			}
-			else if(locations.isEmpty())
+			
+			//error in ArrayList
+			ArrayList<TripLocation> locations = tripLocationRepository.findAllLByTrip(trip);
+
+
+			if(locations.isEmpty())
 			{
 				res.put("Error", "There's No Locations to this Trip");
 			}
 			else
 			{
 				res.put("Success", locations);
+			}
+		}
+		return res;
+	}
+	
+	@RequestMapping(value = "/getAvaliablityOfNumOfGoods/{barcode}", method = RequestMethod.GET)
+	public Map<String,Object> getAvaliablityOfNumOfGoods(@PathVariable String barcode) {
+		Map<String,Object> res = new HashMap<>();
+		
+		if (goodRepository.findOne(barcode) == null) {
+			
+			res.put("Error", "Invalid barcode!");
+		} 
+		else 
+		{
+			Good good=goodRepository.findOne(barcode);
+		
+		ArrayList<TripGood> tripGood = (ArrayList<TripGood>)tripGoodRepository.findAllByGood(good);
+		int counter=0;
+		for(int i=0;i<tripGood.size();i++)
+		{
+			counter+=tripGood.get(i).getNum_of_goods();
+		}
+		
+		
+
+			if(good==null)
+			{
+				res.put("Error", "There isn't good!");
+			}
+			else
+			{
+				int aval=good.getNum_of_goods();
+				int result=aval-counter;
+				res.put("Success", result);
 			}
 		}
 		return res;
@@ -354,6 +475,8 @@ public class TripRestController {
 		}
 		return res;
 	}
+	
+	
 	
 	
 }

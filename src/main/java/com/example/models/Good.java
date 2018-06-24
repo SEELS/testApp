@@ -1,12 +1,17 @@
 package com.example.models;
 
 import java.util.Date;
+import java.util.Set;
+
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name =  "good")
@@ -24,20 +29,15 @@ public class Good {
 	@Column(name = "date")
 	private Date date ;
 	
-	@Column(name = "state")
-	private int state;
-	
 	@Column(name = "num_of_goods")
 	private int num_of_goods;
 	
 	@Column(name = "deleted")
 	private boolean deleted;
 	
-	
-	
-	@ManyToOne
-	@JoinColumn(name="trip_id")
-	private Trip trip;
+	@JsonManagedReference
+	@OneToMany(mappedBy="good",cascade = CascadeType.ALL,fetch=FetchType.EAGER)
+	private Set<TripGood> goods ;
 
 	public Good() {
 		super();
@@ -45,14 +45,14 @@ public class Good {
 
 	
 
-	public Trip getTrip() {
-		return trip;
+	public Set<TripGood> getTripGood() {
+		return goods;
 	}
 
 
 
-	public void setTrip(Trip trip) {
-		this.trip = trip;
+	public void setTripGood(Set<TripGood> goods) {
+		this.goods = goods;
 	}
 
 
@@ -89,13 +89,6 @@ public class Good {
 		this.date = startDate;
 	}
 
-	public int getState() {
-		return state;
-	}
-
-	public void setState(int state) {
-		this.state = state;
-	}
 
 	public int getNum_of_goods() {
 		return num_of_goods;
@@ -116,6 +109,8 @@ public class Good {
 	public void setDeleted(boolean deleted) {
 		this.deleted = deleted;
 	}
+
+
 	
 	
 
