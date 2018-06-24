@@ -16,6 +16,8 @@ import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 @Entity
 @Table(name = "trip")
 public class Trip {
@@ -42,8 +44,9 @@ public class Trip {
 	@JoinColumn(name="road_id")
 	private Road road;
 
-	@OneToMany(mappedBy="trip",cascade = CascadeType.ALL)
-	private Set<Good> goods ;
+	@JsonManagedReference
+	@OneToMany(mappedBy="trip",cascade = CascadeType.ALL,fetch=FetchType.EAGER)
+	private Set<TripGood> goods ;
 	
 	@ManyToOne
 	@JoinColumn(name="source")
@@ -59,6 +62,10 @@ public class Trip {
 	@Column(name = "deleted")
 	private boolean deleted;
 	
+	@JsonManagedReference
+	@OneToMany(mappedBy="trip",cascade = CascadeType.ALL)
+	private Set<TripLocation> tripLocations ;
+	
 	/*
 	 * to check if trip is complete or not or in process 0-> end , 1->not start , 2->in process  
 	 * */
@@ -71,7 +78,7 @@ public class Trip {
 	}
 
 	public Trip(long trip_id, double rate, Date date, Driver driver, Truck truck,
-			Set<Good> goods, Location source, Location destination, long parent,
+			Set<TripGood> goods, Set<TripLocation> tripLocations,Location source, Location destination, long parent,
 			Road road) {
 		super();
 		this.id = trip_id;
@@ -84,6 +91,7 @@ public class Trip {
 		this.destination = destination;
 		this.parent = parent;
 		this.road=road;
+		this.tripLocations=tripLocations;
 	}
 
 
@@ -119,10 +127,7 @@ public class Trip {
 	public void setParent(long parent) {
 		this.parent = parent;
 	}
-
-
-
-
+	
 	public long getTrip_id() {
 		return id;
 	}
@@ -171,11 +176,11 @@ public class Trip {
 		this.road = road;
 	}
 
-	public Set<Good> getGoods() {
+	public Set<TripGood> getGoods() {
 		return goods;
 	}
 
-	public void setGoods(Set<Good> goods) {
+	public void setGoods(Set<TripGood> goods) {
 		this.goods = goods;
 	}
 
@@ -193,6 +198,14 @@ public class Trip {
 
 	public void setDeleted(boolean deleted) {
 		this.deleted = deleted;
+	}
+
+	public Set<TripLocation> getTripLocation() {
+		return tripLocations;
+	}
+
+	public void setTripLocation(Set<TripLocation> tripLocations) {
+		this.tripLocations =tripLocations;
 	}
 
 	

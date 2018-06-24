@@ -2,6 +2,7 @@ package com.example.models;
 
 
 import java.util.Date;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -11,8 +12,11 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "location")
@@ -42,18 +46,17 @@ public class Location {
 	@JoinColumn(name="driver_id")
 	private Driver driver;
 	
-
-	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
-	@JoinColumn(name="trip_id")
-	private Trip trip;
-	
 	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
 	@JoinColumn(name="road_id")
 	private Road road;
+	
 	// time stamps
 	@Column(name = "time")
 	private Date time;
 	
+	@JsonManagedReference
+	@OneToMany(mappedBy="location",cascade = CascadeType.ALL)
+	private Set<TripLocation> tripLocations ;
 	
 	public Location() {
 		super();
@@ -122,13 +125,6 @@ public class Location {
 		this.deleted = deleted;
 	}
 
-	public Trip getTrip() {
-		return trip;
-	}
-
-	public void setTrip(Trip trip) {
-		this.trip = trip;
-	}
 	
 	public Road getRoad() {
 		return road;
@@ -146,7 +142,13 @@ public class Location {
 		this.time = time;
 	}
 	
-	
+	public Set<TripLocation> getTripLocation() {
+		return tripLocations;
+	}
+
+	public void setTripLocation(Set<TripLocation> tripLocations) {
+		this.tripLocations =tripLocations;
+	}
 	
 	
 }
